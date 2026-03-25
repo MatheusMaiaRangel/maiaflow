@@ -1,0 +1,6 @@
+@MaiaFlow_HostAddress = http://localhost:5011
+
+GET {{MaiaFlow_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###

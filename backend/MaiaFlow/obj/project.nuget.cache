@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "A8CxWfFH1wk=",
+  "success": true,
+  "projectFilePath": "/home/maia/dev/maiaflow/backend/MaiaFlow/MaiaFlow.csproj",
+  "expectedPackageFiles": [
+    "/home/maia/.nuget/packages/microsoft.aspnetcore.openapi/10.0.4/microsoft.aspnetcore.openapi.10.0.4.nupkg.sha512",
+    "/home/maia/.nuget/packages/microsoft.openapi/2.0.0/microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
