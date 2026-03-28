@@ -19,5 +19,16 @@ namespace MaiaFlow.Infrastructure
             await _dbSet.AddAsync(user);
             await _context.SaveChangesAsync();
         }
+        
+        public async Task<User?> GetByIdAsync(int id)
+        {
+            return await _dbSet.FindAsync(id);
+        }
+
+        public async Task UpdateAsync(User user)
+        {
+            _dbSet.Update(user);
+            await _context.SaveChangesAsync();
+        }
     }
 }

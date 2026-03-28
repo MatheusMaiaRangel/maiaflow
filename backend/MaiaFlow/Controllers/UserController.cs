@@ -11,11 +11,32 @@ namespace MaiaFlow.Controllers
     {
 
         [HttpPost]
+        [Route("/users")]
         public async Task<ActionResult> CreateUser(CreateUserDTO createUserDto)
         {
             var response = await _userService.CreateUserAsync(createUserDto);
-            
+
             return Ok(response);
+        }
+
+        [HttpGet]
+        [Route("/users/{id}")]
+        public async Task<ActionResult> GetUserById(int id)
+        {
+            var response = await _userService.GetUserByIdAsync(id);
+            return Ok(response);
+        }
+
+        [HttpPatch("/users/{id}")]
+        public async Task<ActionResult> UpdateUser(int id, UpdateUserDTO updateUserDto)
+        {
+            var response = await _userService.UpdateUserAsync(id, updateUserDto);
+            if (response == null)
+            {
+                return NotFound();
+            }
+            return Ok(response);
+
         }
     }
 }
