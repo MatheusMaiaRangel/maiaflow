@@ -25,6 +25,11 @@ namespace MaiaFlow.Infrastructure
             return await _dbSet.FindAsync(id);
         }
 
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
         public async Task UpdateAsync(User user)
         {
             _dbSet.Update(user);
