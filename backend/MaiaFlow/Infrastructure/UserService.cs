@@ -65,5 +65,14 @@ namespace MaiaFlow.Infrastructure
             var token = tokenService.GenerateToken(user);
             return new AuthResponseDTO(token);
         }
+
+        public async Task<bool> DeleteUserAsync(int id)
+        {
+            var user = await repository.GetByIdAsync(id);
+            if (user == null) return false;
+
+            await repository.DeleteAsync(user);
+            return true;
+        }
     }
 }

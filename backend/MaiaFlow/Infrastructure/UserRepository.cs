@@ -35,5 +35,11 @@ namespace MaiaFlow.Infrastructure
             _dbSet.Update(user);
             await _context.SaveChangesAsync();
         }
+
+        public async Task DeleteAsync(User user)
+        {
+            _dbSet.Remove(user);
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -56,7 +56,17 @@ namespace MaiaFlow.Controllers
                 return NotFound();
             }
             return Ok(response);
-
+        }
+        
+        [Authorize]
+        [HttpDelete("/users/{id}")]
+        public async Task<ActionResult> DeleteUser(int id)
+        {
+            var deleted = await _userService.DeleteUserAsync(id);
+            if (!deleted){
+                return NotFound();
+            }
+            return Ok("Usuário deletado");
         }
     }
 }
