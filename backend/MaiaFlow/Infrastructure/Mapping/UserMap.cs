@@ -8,7 +8,7 @@ namespace MaiaFlow.Infrastructure.Mapping
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.ToTable("Users");
+            builder.ToTable("users");
             
             builder.HasKey(u => u.Id);
             builder.Property(u => u.Name).IsRequired().HasMaxLength(100);
