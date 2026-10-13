@@ -81,6 +81,8 @@ Decisions already agreed with the owner. Do not reopen them without asking.
 | D5 | Frontend talks to the API through the Next.js server (BFF). The JWT lives in an `httpOnly` cookie. | Avoids exposing the token to browser JavaScript and avoids CORS for the main flow. CORS is still configurable on the API for development tools. |
 | D6 | Frontend stack: Next.js (App Router) + TypeScript strict, Tailwind CSS + shadcn/ui, react-hook-form + Zod, TanStack Query for interactive client state, API types generated from the backend OpenAPI document. | Mainstream, well-documented stack with typed end-to-end contract. |
 | D7 | Secrets (DB password, JWT key) are not committed. Use .NET user-secrets / environment variables, with a committed example file. | The current values in `appsettings.json` are in git history and must be rotated. |
+| D8 | EF Core migrations are versioned in git; the existing six were kept as they are (no squash). | They apply cleanly on a fresh database and match the model snapshot; rewriting them would break databases that already have the old history. |
+| D9 | The local database runs through `docker-compose.yml` (service `db`); Phase 4 extends the same file. | One way to get a database in every environment. |
 
 ## Phases
 

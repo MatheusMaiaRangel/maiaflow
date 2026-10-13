@@ -61,7 +61,7 @@ There is no test project yet (Phase 1).
 | D8: EF Core migrations are versioned in git; the existing six were kept as they are (no squash). | They apply cleanly on a fresh database and match the model snapshot, and rewriting them would break any database that already has the old history. |
 | D9: Local database runs through `docker-compose.yml` (service `db`); Phase 4 extends the same file. | One way to get a database in every environment, no host PostgreSQL install. |
 
-(Add D8 and D9 to the Decisions table in `docs/ROADMAP.md` when the owner confirms.)
+(Confirmed by the owner and added to the Decisions table in `docs/ROADMAP.md`.)
 
 ## Deviations from the plan
 
