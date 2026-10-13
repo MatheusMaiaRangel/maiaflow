@@ -15,8 +15,9 @@ namespace MaiaFlow
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var connectionString = RequireSetting(builder.Configuration, "ConnectionStrings:DefaultConnection");
             builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(connectionString));
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
@@ -36,9 +37,14 @@ namespace MaiaFlow
                     [new OpenApiSecuritySchemeReference("Bearer")] = new List<string>()
                 });
             });
-            var jwtKey = builder.Configuration["Jwt:Key"]!;
-            var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
-            var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+            var jwtKey = RequireSetting(builder.Configuration, "Jwt:Key");
+            if (jwtKey.Length < MinJwtKeyLength)
+            {
+                throw new InvalidOperationException(
+                    $"Jwt:Key must have at least {MinJwtKeyLength} characters.");
+            }
+            var jwtIssuer = RequireSetting(builder.Configuration, "Jwt:Issuer");
+            var jwtAudience = RequireSetting(builder.Configuration, "Jwt:Audience");
             builder.Services
                 .AddAuthentication(options =>
                 {
@@ -82,6 +88,21 @@ namespace MaiaFlow
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
+        }
+
+        private const int MinJwtKeyLength = 32;
+
+        // Secrets are not committed (see docs/ROADMAP.md, D7): fail fast with a clear message
+        // instead of a NullReferenceException deep inside the framework.
+        private static string RequireSetting(IConfiguration configuration, string key)
+        {
+            var value = configuration[key];
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException(
+                    $"Missing configuration '{key}'. Set it with user-secrets or an environment variable; see README.md.");
+            }
+            return value;
         }
     }
 }
