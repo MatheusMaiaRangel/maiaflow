@@ -9,5 +9,6 @@ namespace MaiaFlow.Application.DTOs.Habit
         HabitFrequencyType FrequencyType,
         int? IntervalDays,
         int DaysOfWeek,
-        List<int>? DaysOfMonth);
+        List<int>? DaysOfMonth,
+        bool LastDayOfMonth = false);
 }

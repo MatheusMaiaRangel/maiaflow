@@ -31,7 +31,8 @@ namespace MaiaFlow.Domain.Habit
         }
 
         public static Habit Create(string title, string? description, DateTime startDate, int userId,
-            HabitFrequencyType frequencyType, int? intervalDays, WeekDays daysOfWeek, List<int>? daysOfMonth)
+            HabitFrequencyType frequencyType, int? intervalDays, WeekDays daysOfWeek, List<int>? daysOfMonth,
+            bool lastDayOfMonth = false)
         {
             if (userId <= 0)
                 throw new DomainValidationException("O hábito deve estar vinculado a um usuário válido.");
@@ -40,7 +41,7 @@ namespace MaiaFlow.Domain.Habit
 
             var habit = new Habit(validTitle, validDescription, startDate.Date, userId);
             var rule = HabitRecurrenceRule.Create(habit.Id, frequencyType, intervalDays, daysOfWeek,
-                daysOfMonth ?? new List<int>(), startDate);
+                daysOfMonth ?? new List<int>(), startDate, lastDayOfMonth);
 
             habit._rules.Add(rule);
             return habit;
@@ -75,7 +76,7 @@ namespace MaiaFlow.Domain.Habit
         /// Days before it keep the old rule, so history is preserved.
         /// </summary>
         public HabitRecurrenceRule ChangeRecurrenceRule(HabitFrequencyType frequencyType, int? intervalDays,
-            WeekDays daysOfWeek, List<int>? daysOfMonth, DateTime effectiveFrom)
+            WeekDays daysOfWeek, List<int>? daysOfMonth, DateTime effectiveFrom, bool lastDayOfMonth = false)
         {
             var from = effectiveFrom.Date;
             var currentRule = GetCurrentRule();
@@ -91,7 +92,7 @@ namespace MaiaFlow.Domain.Habit
 
             // Validate the new rule before touching the current one.
             var newRule = HabitRecurrenceRule.Create(Id, frequencyType, intervalDays, daysOfWeek,
-                daysOfMonth ?? new List<int>(), from);
+                daysOfMonth ?? new List<int>(), from, lastDayOfMonth);
 
             currentRule?.Close(from);
             _rules.Add(newRule);

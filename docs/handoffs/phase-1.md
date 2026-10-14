@@ -47,7 +47,7 @@ Backend (`backend/MaiaFlow`)
 - **Migrations:** `AddUserEmailUniqueIndex` (also lower-cases and trims existing e-mails first),
   `AddUniqueOccurrenceDate`.
 
-Tests (`backend/MaiaFlow.Tests`): 111 tests, above 80 % line coverage. Domain unit tests, plus
+Tests (`backend/MaiaFlow.Tests`): 116 tests, above 80 % line coverage. Domain unit tests, plus
 integration tests with `WebApplicationFactory` and a real PostgreSQL started by Testcontainers
 (auth, ownership, tasks, habits, calendar, CORS, OpenAPI contract). A fake clock (`TimeProvider`)
 makes date logic deterministic.
@@ -93,16 +93,17 @@ A task that belongs to someone else is a `404`, never a `403`.
 ### Habits
 
 `ReadHabitDTO` = `{ id, title, description: string|null, startDate, currentEffectiveFrom,
-currentFrequencyType, currentIntervalDays: int|null, currentDaysOfWeek: int, currentDaysOfMonth: int[] }`.
+currentFrequencyType, currentIntervalDays: int|null, currentDaysOfWeek: int, currentDaysOfMonth: int[],
+currentLastDayOfMonth: boolean }`.
 `frequencyType` is one of `"Daily" | "Weekly" | "Monthly" | "Yearly" | "IntervalDays" | "SpecificDaysOfWeek"`.
 
 | Method | Route | Request | Success | Errors |
 |---|---|---|---|---|
-| POST | `/api/habits` | `{ title, description?, startDate, frequencyType, intervalDays?, daysOfWeek, daysOfMonth? }` | `201` `ReadHabitDTO` | 400 |
+| POST | `/api/habits` | `{ title, description?, startDate, frequencyType, intervalDays?, daysOfWeek, daysOfMonth?, lastDayOfMonth? }` | `201` `ReadHabitDTO` | 400 |
 | GET | `/api/habits` | — | `200` `ReadHabitDTO[]` | |
 | GET | `/api/habits/{id}` | — | `200` `ReadHabitDTO` | 404 |
 | PATCH | `/api/habits/{id}` | `{ title?, description? }` (`null` clears description) | `200` `ReadHabitDTO` | 400, 404 |
-| PATCH | `/api/habits/{id}/recurrence` | `{ frequencyType, intervalDays?, daysOfWeek, daysOfMonth?, effectiveFrom? }` | `200` `ReadHabitDTO` | 400, 404 |
+| PATCH | `/api/habits/{id}/recurrence` | `{ frequencyType, intervalDays?, daysOfWeek, daysOfMonth?, lastDayOfMonth?, effectiveFrom? }` | `200` `ReadHabitDTO` | 400, 404 |
 | DELETE | `/api/habits/{id}` | — | `204` (also deletes rules and occurrences) | 404 |
 | GET | `/api/habits/calendar?start=&end=` | dates `yyyy-MM-dd`, both required, `end >= start`, at most 366 days | `200` `ReadHabitOccurrenceDTO[]` ordered by date | 400 |
 | PATCH | `/api/habits/occurrences/{occurrenceId}/status` | `{ status }` (`Pending`, `Completed`, `NotCompleted`) | `200` `ReadHabitOccurrenceDTO` | 404 |
@@ -110,8 +111,9 @@ currentFrequencyType, currentIntervalDays: int|null, currentDaysOfWeek: int, cur
 `ReadHabitOccurrenceDTO` = `{ id, habitId, habitTitle, date, status }`.
 
 Required fields per `frequencyType`: `IntervalDays` needs `intervalDays > 0`;
-`SpecificDaysOfWeek` needs a non-zero `daysOfWeek`; `Monthly` needs `daysOfMonth` with values 1–31.
-Other types ignore those fields. Example: Monday + Wednesday + Friday is `daysOfWeek: 42`.
+`SpecificDaysOfWeek` needs a non-zero `daysOfWeek`; `Monthly` needs `daysOfMonth` (values 1–31)
+and/or `lastDayOfMonth: true` (the "último dia do mês" checkbox: also happens on the last day of every
+month, e.g. 28/29 in February). Other types ignore those fields. Example: Monday + Wednesday + Friday is `daysOfWeek: 42`.
 
 ### Recurrence rules
 
@@ -119,7 +121,7 @@ Other types ignore those fields. Example: Monday + Wednesday + Friday is `daysOf
   (exclusive). Dates are normalized to midnight.
 - `Weekly`, `Yearly` and `IntervalDays` are **anchored on the rule's `EffectiveFrom`** (the habit's
   start date, or the day a later rule began). `Yearly` on 29 February only happens in leap years.
-  `Monthly` days a month does not have (31 in April) are skipped.
+  `Monthly` days a month does not have (31 in April) are skipped; `lastDayOfMonth` covers that case.
 - **Calendar:** days up to today are stored occurrences (real `id`, created the first time the
   calendar is read, status starts `Pending`). Days after today are **computed on the fly with
   `id = 0`**; they do not exist yet, so updating their status returns `404`. The UI must disable
@@ -129,7 +131,8 @@ Other types ignore those fields. Example: Monday + Wednesday + Friday is `daysOf
   (otherwise `400`). Without `effectiveFrom` the change starts on the first ungenerated day: today,
   or tomorrow if today's occurrences already exist. `currentEffectiveFrom` in the response tells
   the UI when it starts. A change can be scheduled in the future.
-- "Today" is the **UTC date** (see open issues).
+- **"Today" is the calendar day in Brasília** (`TimeZone` setting, default `America/Sao_Paulo`; Brazil has
+  no daylight saving). The server needs tz data (`tzdata` in slim/alpine Docker images, Phase 4).
 
 ## How to run and check
 
@@ -170,10 +173,6 @@ indexes will fail to apply; clean the duplicates first (or recreate the dev data
 
 ## Open issues and follow-ups
 
-- **Time zones:** "today" is the UTC date. In Brazil (UTC−3) between 21:00 and midnight the server
-  already considers it the next day. Needs a decision (client time zone or date sent by the client).
-- **Monthly day 31** skips short months. If the owner prefers "last day of month", it is a small
-  change in `HabitRecurrenceRule.OccursOn`.
 - **Changing e-mail/password has no current-password check.** Worth adding before production;
   needs a contract decision for the profile page (Phase 3).
 - **No refresh token:** JWT lasts 24 h; the frontend must handle `401`.

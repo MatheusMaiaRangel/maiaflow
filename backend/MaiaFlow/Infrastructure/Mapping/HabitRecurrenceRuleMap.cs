@@ -38,6 +38,8 @@ namespace MaiaFlow.Infrastructure.Mapping
                         : v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList())
                 .Metadata.SetValueComparer(daysOfMonthComparer);
 
+            builder.Property(r => r.LastDayOfMonth).IsRequired().HasDefaultValue(false);
+
             builder.Property(r => r.EffectiveFrom).IsRequired();
             builder.Property(r => r.EffectiveTo);
         }

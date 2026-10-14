@@ -56,9 +56,9 @@ namespace MaiaFlow.Tests.Integration
         {
             var owner = await SignedInClientAsync(fixture);
             var intruder = await SignedInClientAsync(fixture);
-            var start = DateTime.UtcNow.Date.AddDays(-2);
+            var start = BrazilTime.Today.AddDays(-2);
             await owner.PostJsonAsync("/api/habits", DailyHabit("Privado", start));
-            var calendar = await (await owner.GetAsync(CalendarUrl(start, DateTime.UtcNow.Date))).ReadJsonAsync();
+            var calendar = await (await owner.GetAsync(CalendarUrl(start, BrazilTime.Today))).ReadJsonAsync();
             var occurrenceId = calendar[0].GetProperty("id").GetInt32();
 
             var response = await intruder.PatchJsonAsync(
@@ -72,16 +72,16 @@ namespace MaiaFlow.Tests.Integration
         {
             var owner = await SignedInClientAsync(fixture);
             var other = await SignedInClientAsync(fixture);
-            var start = DateTime.UtcNow.Date.AddDays(-2);
+            var start = BrazilTime.Today.AddDays(-2);
             await owner.PostJsonAsync("/api/habits", DailyHabit("Privado", start));
 
-            var calendar = await (await other.GetAsync(CalendarUrl(start, DateTime.UtcNow.Date))).ReadJsonAsync();
+            var calendar = await (await other.GetAsync(CalendarUrl(start, BrazilTime.Today))).ReadJsonAsync();
 
             Assert.Equal(0, calendar.GetArrayLength());
         }
 
         public static string DailyHabit(string title, DateTime? start = null) =>
-            $$"""{"title":"{{title}}","startDate":"{{(start ?? DateTime.UtcNow.Date):yyyy-MM-dd}}T00:00:00","frequencyType":"Daily","daysOfWeek":0}""";
+            $$"""{"title":"{{title}}","startDate":"{{(start ?? BrazilTime.Today):yyyy-MM-dd}}T00:00:00","frequencyType":"Daily","daysOfWeek":0}""";
 
         public static string CalendarUrl(DateTime start, DateTime end) =>
             $"/api/habits/calendar?start={start:yyyy-MM-dd}&end={end:yyyy-MM-dd}";

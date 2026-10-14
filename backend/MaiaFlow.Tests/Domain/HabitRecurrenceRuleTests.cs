@@ -113,5 +113,28 @@ namespace MaiaFlow.Tests.Domain
             Assert.Throws<DomainValidationException>(() =>
                 HabitRecurrenceRule.Create(1, type, interval, (WeekDays)days, monthDays.ToList(), Monday));
         }
+
+        [Fact]
+        public void Monthly_with_last_day_occurs_on_the_last_day_of_every_month_including_leap_february()
+        {
+            var rule = HabitRecurrenceRule.Create(1, HabitFrequencyType.Monthly, null, WeekDays.None, [15],
+                new DateTime(2024, 1, 1), lastDayOfMonth: true);
+
+            Assert.True(rule.OccursOn(new DateTime(2024, 2, 29)));
+            Assert.False(rule.OccursOn(new DateTime(2024, 2, 28)));
+            Assert.True(rule.OccursOn(new DateTime(2025, 2, 28)));
+            Assert.True(rule.OccursOn(new DateTime(2025, 4, 30)));
+            Assert.True(rule.OccursOn(new DateTime(2025, 4, 15))); // the chosen day still counts
+            Assert.False(rule.OccursOn(new DateTime(2025, 4, 29)));
+        }
+
+        [Fact]
+        public void The_last_day_option_is_ignored_for_other_frequencies()
+        {
+            var rule = HabitRecurrenceRule.Create(1, HabitFrequencyType.Weekly, null, WeekDays.None, [],
+                Monday, lastDayOfMonth: true);
+
+            Assert.False(rule.LastDayOfMonth);
+        }
     }
 }

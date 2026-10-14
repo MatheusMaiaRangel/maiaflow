@@ -15,7 +15,14 @@ namespace MaiaFlow.Tests.Integration
 
         private (WebApplicationFactory<Program> Factory, FakeTimeProvider Clock) FactoryAt(DateTime utcDay)
         {
-            var clock = new FakeTimeProvider(new DateTimeOffset(utcDay, TimeSpan.Zero));
+            // 12:00 in Brasília (UTC-3, no daylight saving), so "today" is unambiguous.
+            return FactoryAtInstant(new DateTimeOffset(utcDay.AddHours(15), TimeSpan.Zero));
+        }
+
+        private (WebApplicationFactory<Program> Factory, FakeTimeProvider Clock) FactoryAtInstant(DateTimeOffset instant)
+        {
+            var clock = new FakeTimeProvider(instant);
+            clock.SetLocalTimeZone(BrazilTime.Zone);
             var factory = fixture.Factory.WithWebHostBuilder(b =>
                 b.ConfigureServices(s => s.AddSingleton<TimeProvider>(clock)));
             return (factory, clock);
@@ -287,10 +294,10 @@ namespace MaiaFlow.Tests.Integration
             var tooMany = string.Join(",", Enumerable.Range(1, 32));
 
             var ok = await (await client.PostJsonAsync("/api/habits", $$"""
-                {"title":"Contas","startDate":"{{DateTime.UtcNow:yyyy-MM-dd}}T00:00:00","frequencyType":"Monthly","daysOfWeek":0,"daysOfMonth":[15,1,15]}
+                {"title":"Contas","startDate":"{{BrazilTime.Today:yyyy-MM-dd}}T00:00:00","frequencyType":"Monthly","daysOfWeek":0,"daysOfMonth":[15,1,15]}
                 """)).ReadJsonAsync();
             var rejected = await client.PostJsonAsync("/api/habits", $$"""
-                {"title":"Contas","startDate":"{{DateTime.UtcNow:yyyy-MM-dd}}T00:00:00","frequencyType":"Daily","daysOfWeek":0,"daysOfMonth":[{{tooMany}}]}
+                {"title":"Contas","startDate":"{{BrazilTime.Today:yyyy-MM-dd}}T00:00:00","frequencyType":"Daily","daysOfWeek":0,"daysOfMonth":[{{tooMany}}]}
                 """);
 
             Assert.Equal([1, 15], ok.GetProperty("currentDaysOfMonth").EnumerateArray().Select(d => d.GetInt32()));
@@ -325,6 +332,48 @@ namespace MaiaFlow.Tests.Integration
 
             Assert.Equal(["2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18", "2026-10-19", "2026-10-20"],
                 Dates(calendar));
+        }
+
+        [Fact]
+        public async Task Today_is_the_day_in_Brasilia_not_the_UTC_day()
+        {
+            // 02:30 UTC on the 15th is still 23:30 on the 14th in Brasília.
+            var (factory, _) = FactoryAtInstant(new DateTimeOffset(2026, 10, 15, 2, 30, 0, TimeSpan.Zero));
+            var client = await SignedInClientAsync(factory);
+            await client.PostJsonAsync("/api/habits", DailyHabit("Diário", Today));
+
+            var calendar = Items(await (await client.GetAsync(CalendarUrl(Today, Today.AddDays(1)))).ReadJsonAsync());
+
+            Assert.Equal(["2026-10-14", "2026-10-15"], Dates(calendar));
+            Assert.True(calendar[0].GetProperty("id").GetInt32() > 0);  // the 14th is today: stored
+            Assert.Equal(0, calendar[1].GetProperty("id").GetInt32());  // the 15th is tomorrow: computed
+        }
+
+        [Fact]
+        public async Task The_last_day_of_the_month_option_covers_months_without_the_chosen_day()
+        {
+            var (factory, _) = FactoryAt(Today);
+            var client = await SignedInClientAsync(factory);
+
+            var created = await (await client.PostJsonAsync("/api/habits", """
+                {"title":"Fechar mês","startDate":"2026-10-14T00:00:00","frequencyType":"Monthly","daysOfWeek":0,"daysOfMonth":[],"lastDayOfMonth":true}
+                """)).ReadJsonAsync();
+            var calendar = Items(await (await client.GetAsync(CalendarUrl(new DateTime(2026, 10, 14), new DateTime(2027, 2, 28)))).ReadJsonAsync());
+
+            Assert.True(created.GetProperty("currentLastDayOfMonth").GetBoolean());
+            Assert.Equal(["2026-10-31", "2026-11-30", "2026-12-31", "2027-01-31", "2027-02-28"], Dates(calendar));
+        }
+
+        [Fact]
+        public async Task Monthly_needs_a_day_or_the_last_day_option()
+        {
+            var client = await SignedInClientAsync(fixture);
+
+            var response = await client.PostJsonAsync("/api/habits", $$"""
+                {"title":"Contas","startDate":"{{BrazilTime.Today:yyyy-MM-dd}}T00:00:00","frequencyType":"Monthly","daysOfWeek":0,"daysOfMonth":[],"lastDayOfMonth":false}
+                """);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }

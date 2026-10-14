@@ -17,8 +17,8 @@ namespace MaiaFlow.Infrastructure
         private const int MaxCalendarYearsInPast = 10;
 
 
-        // "Today" is the UTC date for now; see docs/handoffs/phase-1.md (time zones).
-        private DateTime Today => timeProvider.GetUtcNow().UtcDateTime.Date;
+        // "Today" is the calendar day in the configured time zone (Brasília), not the UTC day.
+        private DateTime Today => timeProvider.GetLocalNow().Date;
 
         public async Task<ReadHabitDTO> CreateHabitAsync(int userId, CreateHabitDTO createHabitDto)
         {
@@ -35,7 +35,8 @@ namespace MaiaFlow.Infrastructure
                 createHabitDto.FrequencyType,
                 createHabitDto.IntervalDays,
                 (WeekDays)createHabitDto.DaysOfWeek,
-                createHabitDto.DaysOfMonth);
+                createHabitDto.DaysOfMonth,
+                createHabitDto.LastDayOfMonth);
 
             await habitRepository.AddAsync(habit);
 
@@ -78,7 +79,8 @@ namespace MaiaFlow.Infrastructure
                 changeDto.IntervalDays,
                 (WeekDays)changeDto.DaysOfWeek,
                 changeDto.DaysOfMonth,
-                effectiveFrom);
+                effectiveFrom,
+                changeDto.LastDayOfMonth);
 
             await habitRepository.UpdateAsync(habit);
             return ToDto(habit);
@@ -216,7 +218,8 @@ namespace MaiaFlow.Infrastructure
                 rule?.FrequencyType ?? default,
                 rule?.IntervalDays,
                 (int)(rule?.DaysOfWeek ?? WeekDays.None),
-                rule?.DaysOfMonth ?? new List<int>());
+                rule?.DaysOfMonth ?? new List<int>(),
+                rule?.LastDayOfMonth ?? false);
         }
 
         private static ReadHabitOccurrenceDTO ToOccurrenceDto(HabitOccurrence occurrence, Habit habit)

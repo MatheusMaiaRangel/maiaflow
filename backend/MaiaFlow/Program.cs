@@ -94,7 +94,18 @@ namespace MaiaFlow
                     .WithOrigins(corsOrigins)
                     .AllowAnyHeader()
                     .AllowAnyMethod()));
-            builder.Services.AddSingleton(TimeProvider.System);
+            var timeZoneId = builder.Configuration["TimeZone"] ?? DefaultTimeZoneId;
+            TimeZoneInfo timeZone;
+            try
+            {
+                timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            }
+            catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
+            {
+                throw new InvalidOperationException(
+                    $"Time zone '{timeZoneId}' was not found. Check the TimeZone setting and that tzdata is installed.", ex);
+            }
+            builder.Services.AddSingleton<TimeProvider>(new ZonedTimeProvider(timeZone));
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
@@ -132,6 +143,7 @@ namespace MaiaFlow
             return schema;
         }
 
+        private const string DefaultTimeZoneId = "America/Sao_Paulo";
         private const int MinJwtKeyLength = 32;
         private const long MaxRequestBodyBytes = 64 * 1024;
         private const string CorsPolicyName = "Frontend";

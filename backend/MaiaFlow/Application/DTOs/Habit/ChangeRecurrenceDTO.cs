@@ -7,5 +7,6 @@ namespace MaiaFlow.Application.DTOs.Habit
         int? IntervalDays,
         int DaysOfWeek,
         List<int>? DaysOfMonth,
-        DateTime? EffectiveFrom);
+        DateTime? EffectiveFrom,
+        bool LastDayOfMonth = false);
 }
