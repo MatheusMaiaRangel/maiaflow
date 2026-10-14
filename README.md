@@ -47,6 +47,17 @@ dotnet ef migrations add <Name> --project backend/MaiaFlow   # after changing th
 dotnet ef database update --project backend/MaiaFlow
 ```
 
+## Run the web app
+
+```bash
+cd frontend
+cp .env.example .env.local     # API_URL, default http://localhost:5011
+npm install
+npm run dev                    # http://localhost:3000 (API and database must be running)
+```
+
+See [`frontend/README.md`](frontend/README.md) for scripts and structure.
+
 ## Build and test
 
 ```bash

@@ -13,7 +13,7 @@ file first, then the handoff of the last finished phase in [`docs/handoffs/`](ha
 |---|---|---|---|
 | 0 | Environment and foundation | Done | [phase-0](handoffs/phase-0.md) |
 | 1 | Backend: API contract and fixes | Done | [phase-1](handoffs/phase-1.md) |
-| 2 | Frontend foundation (Next.js) | In progress | — |
+| 2 | Frontend foundation (Next.js) | In review | [phase-2](handoffs/phase-2.md) |
 | 3 | Frontend features | Not started | — |
 | 4 | Quality and delivery | Not started | — |
 
@@ -62,9 +62,10 @@ handoff).
 
 ### Branches
 
-- Since phase 2 the owner works **directly on `main`**: no feature branches and no pull requests
-  (decision D17). Commits still follow the rules above, one logical change each, and are pushed
-  right after the checks pass. Phases 0 and 1 went through pull requests #10 and #11.
+- Since phase 2 the work goes **directly to `main`**: no feature branches and no pull requests
+  (decision D17). **But nothing is committed or pushed until the owner has tested the result and
+  said so.** Until then the changes stay in the working tree. Once approved, commits follow the
+  rules above, one logical change each. Phases 0 and 1 went through pull requests #10 and #11.
 - A phase handoff replaces the PR description: summary, changes, how it was tested.
 
 ## Decisions
@@ -89,7 +90,10 @@ Decisions already agreed with the owner. Do not reopen them without asking.
 | D14 | Integration tests use Testcontainers with a real PostgreSQL. | They exercise the real SQL, indexes and `ON CONFLICT`. |
 | D15 | "Today" is the calendar day in Brasília (`TimeZone` = `America/Sao_Paulo`), not UTC. | Users are in Brazil; late-evening actions must land on the right day. |
 | D16 | Monthly habits have a `lastDayOfMonth` option (checkbox); day 31 alone still skips short months. | Lets users mean "end of month" explicitly. |
-| D17 | From phase 2 on, work and commit directly on `main` (no branches, no PRs). | Solo project; the owner prefers the simpler flow. |
+| D17 | From phase 2 on, work goes directly to `main` (no branches, no PRs), but only after the owner tests and approves; nothing is committed before that. | Solo project; the owner wants to test every change first. |
+| D18 | Next.js Cache Components stay off (`cacheComponents` removed from the scaffold). | The whole app is behind a login; it avoids a Suspense boundary around every cookie read. |
+| D19 | The API's JWT is stored as-is in an `httpOnly` cookie (no extra session library); `proxy.ts` only checks it optimistically and the API is the authority. | Fewer moving parts; a 401 from the API clears the cookie and returns to login. |
+| D20 | Browser calls to the API go through a same-origin BFF route (`/api/*`) that adds the token; sign-in and sign-up are Server Actions only. | The token never reaches client-side JavaScript. |
 
 ## Phases
 
