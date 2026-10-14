@@ -17,6 +17,6 @@ Work is organized in phases. At the start of every session:
   Portuguese.
 - Conventional Commits with scope (`feat(api): ...`, `fix(web): ...`). Commit each piece of
   work as soon as it is finished and checked.
-- One pull request per phase. At the end of a phase, write `docs/handoffs/phase-N.md` from the
-  template and update the status table in the roadmap.
+- Work directly on `main` (no branches or pull requests, decision D17). At the end of a phase,
+  write `docs/handoffs/phase-N.md` from the template and update the status table in the roadmap.
 - Decisions listed in the roadmap are settled; ask the owner before changing them.

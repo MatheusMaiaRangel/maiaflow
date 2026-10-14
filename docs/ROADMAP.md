@@ -2,7 +2,7 @@
 
 Plan for turning MaiaFlow into a working full-stack app: an ASP.NET Core API (`backend/`) and a
 Next.js web app (`frontend/`). The work is split into phases. **A phase only starts after the
-previous one is finished and its pull request is open.**
+previous one is finished and the owner approved it.**
 
 Each phase is expected to run in its own Claude Code session. When a session starts, read this
 file first, then the handoff of the last finished phase in [`docs/handoffs/`](handoffs/).
@@ -35,7 +35,7 @@ handoff).
 4. At the end of the phase:
    - write the handoff file `docs/handoffs/phase-N.md` from [the template](handoffs/TEMPLATE.md);
    - update the status table above;
-   - open **one pull request for the phase** into `main`;
+   - push the work to `main` (no pull request; see "Branches" below);
    - report to the owner and wait for approval before starting the next phase.
 
 ### Language
@@ -60,13 +60,12 @@ handoff).
 - Examples: `feat(api): add GET /api/users/me`, `fix(web): redirect to login on 401`,
   `chore(repo): stop tracking .idea folder`.
 
-### Branches and pull requests
+### Branches
 
-- One pull request per phase, opened against `main` when the phase is finished.
-- Each phase starts from an up-to-date `main` (after the previous phase's PR is merged), on the
-  branch assigned to that session.
-- PR description: summary of the phase, list of changes, how it was tested, and a link to the
-  phase handoff.
+- Since phase 2 the owner works **directly on `main`**: no feature branches and no pull requests
+  (decision D17). Commits still follow the rules above, one logical change each, and are pushed
+  right after the checks pass. Phases 0 and 1 went through pull requests #10 and #11.
+- A phase handoff replaces the PR description: summary, changes, how it was tested.
 
 ## Decisions
 
@@ -90,6 +89,7 @@ Decisions already agreed with the owner. Do not reopen them without asking.
 | D14 | Integration tests use Testcontainers with a real PostgreSQL. | They exercise the real SQL, indexes and `ON CONFLICT`. |
 | D15 | "Today" is the calendar day in Brasília (`TimeZone` = `America/Sao_Paulo`), not UTC. | Users are in Brazil; late-evening actions must land on the right day. |
 | D16 | Monthly habits have a `lastDayOfMonth` option (checkbox); day 31 alone still skips short months. | Lets users mean "end of month" explicitly. |
+| D17 | From phase 2 on, work and commit directly on `main` (no branches, no PRs). | Solo project; the owner prefers the simpler flow. |
 
 ## Phases
 
