@@ -76,7 +76,8 @@ namespace MaiaFlow.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HabitId");
+                    b.HasIndex("HabitId", "Date")
+                        .IsUnique();
 
                     b.ToTable("habit_occurrences", (string)null);
                 });
@@ -112,6 +113,11 @@ namespace MaiaFlow.Migrations
 
                     b.Property<int?>("IntervalDays")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("LastDayOfMonth")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.HasKey("Id");
 
@@ -179,6 +185,9 @@ namespace MaiaFlow.Migrations
                         .HasColumnType("character varying(255)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("users", (string)null);
                 });

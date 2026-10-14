@@ -12,7 +12,7 @@ file first, then the handoff of the last finished phase in [`docs/handoffs/`](ha
 | Phase | Title | Status | Handoff |
 |---|---|---|---|
 | 0 | Environment and foundation | Done | [phase-0](handoffs/phase-0.md) |
-| 1 | Backend: API contract and fixes | Not started | — |
+| 1 | Backend: API contract and fixes | Done | [phase-1](handoffs/phase-1.md) |
 | 2 | Frontend foundation (Next.js) | Not started | — |
 | 3 | Frontend features | Not started | — |
 | 4 | Quality and delivery | Not started | — |
@@ -83,6 +83,13 @@ Decisions already agreed with the owner. Do not reopen them without asking.
 | D7 | Secrets (DB password, JWT key) are not committed. Use .NET user-secrets / environment variables, with a committed example file. | The current values in `appsettings.json` are in git history and must be rotated. |
 | D8 | EF Core migrations are versioned in git; the existing six were kept as they are (no squash). | They apply cleanly on a fresh database and match the model snapshot; rewriting them would break databases that already have the old history. |
 | D9 | The local database runs through `docker-compose.yml` (service `db`); Phase 4 extends the same file. | One way to get a database in every environment. |
+| D10 | `WeekDays` is an `int` bit mask in DTOs; the domain keeps the `[Flags]` enum. | Keeps D3 (bit flags on the wire) while all other enums become strings. |
+| D11 | PATCH: a missing field keeps the value, `null` clears it (`Optional<T>`). | The only way to clear optional fields without extra endpoints. |
+| D12 | A recurrence change never rewrites generated days; default start is the first ungenerated day. | Preserves completed/not-completed history and avoids duplicate occurrences. |
+| D13 | E-mails are stored trimmed and lower-case and are unique. | Uniqueness must not depend on casing. |
+| D14 | Integration tests use Testcontainers with a real PostgreSQL. | They exercise the real SQL, indexes and `ON CONFLICT`. |
+| D15 | "Today" is the calendar day in Brasília (`TimeZone` = `America/Sao_Paulo`), not UTC. | Users are in Brazil; late-evening actions must land on the right day. |
+| D16 | Monthly habits have a `lastDayOfMonth` option (checkbox); day 31 alone still skips short months. | Lets users mean "end of month" explicitly. |
 
 ## Phases
 

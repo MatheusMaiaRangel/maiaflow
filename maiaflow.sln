@@ -1,3 +1,4 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
@@ -6,22 +7,49 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{1AE8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaiaFlow", "backend\MaiaFlow\MaiaFlow.csproj", "{DE5D3E9C-F204-315B-3894-1A169B0DD58D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaiaFlow.Tests", "backend\MaiaFlow.Tests\MaiaFlow.Tests.csproj", "{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Debug|x64.Build.0 = Debug|Any CPU
+		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Debug|x86.Build.0 = Debug|Any CPU
 		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Release|x64.ActiveCfg = Release|Any CPU
+		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Release|x64.Build.0 = Release|Any CPU
+		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Release|x86.ActiveCfg = Release|Any CPU
+		{DE5D3E9C-F204-315B-3894-1A169B0DD58D}.Release|x86.Build.0 = Release|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Debug|x64.Build.0 = Debug|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Debug|x86.Build.0 = Debug|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Release|x64.ActiveCfg = Release|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Release|x64.Build.0 = Release|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Release|x86.ActiveCfg = Release|Any CPU
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DE5D3E9C-F204-315B-3894-1A169B0DD58D} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
+		{FC1A4DAA-BA20-4464-9445-8BB5EA66DF8E} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7617FF8E-D218-46B9-AA51-DB5D1344F625}

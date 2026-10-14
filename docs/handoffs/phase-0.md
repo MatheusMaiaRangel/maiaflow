@@ -6,7 +6,7 @@ The backend builds and runs against a real PostgreSQL, the repository is clean, 
 git, and new sessions start ready to work. The API was smoke-tested end to end (sign-up, login,
 create and list tasks, 401 without token, Swagger and the OpenAPI JSON served).
 
-- Pull request: _not opened yet (waiting for the owner's go-ahead)_
+- Pull request: https://github.com/MatheusMaiaRangel/maiaflow/pull/10
 - Branch: `chore/phase-0-foundation` (based on `docs/roadmap`, which carries the roadmap commit
   that is not in `main` yet)
 - Finished on: 2026-10-13

@@ -5,7 +5,8 @@ namespace MaiaFlow.Application.DTOs.Habit
     public record ChangeRecurrenceDTO(
         HabitFrequencyType FrequencyType,
         int? IntervalDays,
-        WeekDays DaysOfWeek,
+        int DaysOfWeek,
         List<int>? DaysOfMonth,
-        DateTime? EffectiveFrom);
+        DateTime? EffectiveFrom,
+        bool LastDayOfMonth = false);
 }

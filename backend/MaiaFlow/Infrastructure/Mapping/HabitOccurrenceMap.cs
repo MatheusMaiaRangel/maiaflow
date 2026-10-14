@@ -11,6 +11,7 @@ namespace MaiaFlow.Infrastructure.Mapping
             builder.ToTable("habit_occurrences");
 
             builder.HasKey(o => o.Id);
+            builder.HasIndex(o => new { o.HabitId, o.Date }).IsUnique();
             builder.Property(o => o.HabitId).IsRequired();
             builder.Property(o => o.Date).IsRequired();
 

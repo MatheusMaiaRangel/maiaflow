@@ -11,6 +11,7 @@ namespace MaiaFlow.Infrastructure.Mapping
             builder.ToTable("users");
             
             builder.HasKey(u => u.Id);
+            builder.HasIndex(u => u.Email).IsUnique();
             builder.Property(u => u.Name).IsRequired().HasMaxLength(100);
             builder.Property(u => u.Email).IsRequired().HasMaxLength(256);
             builder.Property(u => u.Password).IsRequired().HasMaxLength(255);
