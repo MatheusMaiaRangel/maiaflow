@@ -130,5 +130,40 @@ namespace MaiaFlow.Tests.Integration
             var status = json.GetProperty("components").GetProperty("schemas").GetProperty("TaskItemStatus");
             Assert.Equal("string", status.GetProperty("type").GetString());
         }
+
+        [Fact]
+        public async Task Every_operation_documents_a_success_response_so_clients_can_be_generated()
+        {
+            var json = await (await fixture.Factory.CreateClient().GetAsync("/swagger/v1/swagger.json")).ReadJsonAsync();
+
+            foreach (var path in json.GetProperty("paths").EnumerateObject())
+            foreach (var operation in path.Value.EnumerateObject())
+            {
+                var success = operation.Value.GetProperty("responses").EnumerateObject()
+                    .Where(r => r.Name.StartsWith('2')).ToList();
+                Assert.True(success.Count > 0, $"{operation.Name.ToUpper()} {path.Name} has no 2xx response");
+                foreach (var response in success.Where(r => r.Name != "204"))
+                {
+                    Assert.True(response.Value.TryGetProperty("content", out var content)
+                                && content.GetProperty("application/json").TryGetProperty("schema", out _),
+                        $"{operation.Name.ToUpper()} {path.Name} {response.Name} has no schema");
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Patch_fields_that_can_be_cleared_are_documented_as_nullable()
+        {
+            var json = await (await fixture.Factory.CreateClient().GetAsync("/swagger/v1/swagger.json")).ReadJsonAsync();
+            var schemas = json.GetProperty("components").GetProperty("schemas");
+
+            foreach (var (schema, property) in new[]
+                     { ("UpdateTaskDTO", "description"), ("UpdateTaskDTO", "dueDate"), ("UpdateHabitDetailsDTO", "description") })
+            {
+                var field = schemas.GetProperty(schema).GetProperty("properties").GetProperty(property);
+                Assert.True(field.TryGetProperty("nullable", out var nullable) && nullable.GetBoolean(),
+                    $"{schema}.{property} should be nullable");
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace MaiaFlow.Tests.Integration
 {
@@ -13,20 +14,23 @@ namespace MaiaFlow.Tests.Integration
 
         public static string UniqueEmail() => $"user-{Guid.NewGuid():N}@example.com";
 
-        public static async Task<HttpClient> SignedInClientAsync(ApiFixture fixture, string? email = null)
+        public static Task<HttpClient> SignedInClientAsync(ApiFixture fixture, string? email = null) =>
+            SignedInClientAsync(fixture.Factory, email);
+
+        public static async Task<HttpClient> SignedInClientAsync(WebApplicationFactory<Program> factory, string? email = null)
         {
-            var client = fixture.Factory.CreateClient();
+            var client = factory.CreateClient();
             email ??= UniqueEmail();
 
             var signUp = await client.PostAsJsonAsync("/api/users", new { name = "Usuário Teste", email, password = Password });
             signUp.EnsureSuccessStatusCode();
 
-            return await SignInAsync(fixture, email, Password);
+            return await SignInAsync(factory, email, Password);
         }
 
-        public static async Task<HttpClient> SignInAsync(ApiFixture fixture, string email, string password)
+        public static async Task<HttpClient> SignInAsync(WebApplicationFactory<Program> factory, string email, string password)
         {
-            var client = fixture.Factory.CreateClient();
+            var client = factory.CreateClient();
             var login = await client.PostAsJsonAsync("/api/auth/login", new { email, password });
             login.EnsureSuccessStatusCode();
 
