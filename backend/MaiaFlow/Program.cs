@@ -34,6 +34,10 @@ namespace MaiaFlow
                     In = ParameterLocation.Header,
                     Description = "Informe apenas o token JWT."
                 });
+                // Non-nullable reference types are required and non-nullable; response DTOs are fully required.
+                options.SupportNonNullableReferenceTypes();
+                options.NonNullableReferenceTypesAsRequired();
+                options.SchemaFilter<ContractSchemaFilter>();
                 // Optional<T> PATCH fields are plain nullable values on the wire: absent keeps, null clears.
                 options.MapType<Optional<string>>(() => NullableSchema(new OpenApiSchema { Type = JsonSchemaType.String }));
                 options.MapType<Optional<DateTime?>>(() => NullableSchema(

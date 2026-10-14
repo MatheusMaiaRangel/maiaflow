@@ -205,5 +205,22 @@ namespace MaiaFlow.Tests.Integration
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+
+        [Fact]
+        public async Task Response_schemas_require_every_property_and_patch_fields_stay_optional()
+        {
+            var json = await (await fixture.Factory.CreateClient().GetAsync("/swagger/v1/swagger.json")).ReadJsonAsync();
+            var schemas = json.GetProperty("components").GetProperty("schemas");
+
+            string[] Required(string name) =>
+                schemas.GetProperty(name).GetProperty("required").EnumerateArray().Select(r => r.GetString()!).ToArray();
+
+            Assert.Equivalent(new[] { "id", "title", "description", "dueDate", "status" }, Required("ReadTaskDTO"));
+            Assert.Contains("title", Required("CreateTaskDTO"));
+            Assert.DoesNotContain("description", Required("CreateTaskDTO"));
+            // PATCH bodies: nothing is required, a missing field means "keep".
+            Assert.False(schemas.GetProperty("UpdateTaskDTO").TryGetProperty("required", out _));
+            Assert.False(schemas.GetProperty("UpdateHabitDetailsDTO").TryGetProperty("required", out _));
+        }
     }
 }

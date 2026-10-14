@@ -1,0 +1,40 @@
+using System.Text.Json;
+using MaiaFlow.Application;
+using Microsoft.OpenApi;
+using Swashbuckle.AspNetCore.SwaggerGen;
+
+namespace MaiaFlow.Infrastructure
+{
+    /// <summary>
+    /// Shapes the OpenAPI document so clients generated from it are precise:
+    /// <list type="bullet">
+    /// <item>Response DTOs always send every property (null included), so all of them are required
+    /// (<c>id: number</c> instead of <c>id?: number</c>).</item>
+    /// <item><see cref="Optional{T}"/> PATCH fields may be omitted, so they are never required.</item>
+    /// </list>
+    /// </summary>
+    public class ContractSchemaFilter : ISchemaFilter
+    {
+        public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
+        {
+            if (schema is not OpenApiSchema openApiSchema || openApiSchema.Properties is null) return;
+
+            if (IsResponseDto(context.Type))
+                openApiSchema.Required = new HashSet<string>(openApiSchema.Properties.Keys);
+
+            if (openApiSchema.Required is null) return;
+            foreach (var property in context.Type.GetProperties())
+            {
+                if (IsOptional(property.PropertyType))
+                    openApiSchema.Required.Remove(JsonNamingPolicy.CamelCase.ConvertName(property.Name));
+            }
+        }
+
+        private static bool IsOptional(Type type) =>
+            type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>);
+
+        private static bool IsResponseDto(Type type) =>
+            type.Namespace?.StartsWith("MaiaFlow.Application.DTOs", StringComparison.Ordinal) == true
+            && (type.Name.StartsWith("Read", StringComparison.Ordinal) || type.Name == "AuthResponseDTO");
+    }
+}
