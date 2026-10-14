@@ -76,7 +76,8 @@ namespace MaiaFlow.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HabitId");
+                    b.HasIndex("HabitId", "Date")
+                        .IsUnique();
 
                     b.ToTable("habit_occurrences", (string)null);
                 });
