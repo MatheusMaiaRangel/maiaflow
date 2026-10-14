@@ -10,6 +10,9 @@ namespace MaiaFlow.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // E-mails are now stored trimmed and lower-case; fails below if that makes two users collide.
+            migrationBuilder.Sql("UPDATE users SET \"Email\" = lower(btrim(\"Email\"))");
+
             migrationBuilder.CreateIndex(
                 name: "IX_users_Email",
                 table: "users",

@@ -7,8 +7,13 @@ namespace MaiaFlow.Infrastructure
 {
     public class TaskService(ITaskRepository repository) : ITaskService
     {
+        private const int MaxTasksPerUser = 5000;
+
         public async Task<ReadTaskDTO> CreateTaskAsync(int userId, CreateTaskDTO createTaskDto)
         {
+            if (await repository.CountByUserIdAsync(userId) >= MaxTasksPerUser)
+                throw new DomainValidationException($"Limite de {MaxTasksPerUser} tarefas atingido.");
+
             var task = TaskItem.Create(createTaskDto.Title, createTaskDto.Description, createTaskDto.DueDate, userId);
 
             await repository.AddAsync(task);
@@ -45,6 +50,9 @@ namespace MaiaFlow.Infrastructure
 
         public async Task<ReadTaskDTO> UpdateTaskStatusAsync(int userId, int taskId, UpdateTaskStatusDTO updateStatusDto)
         {
+            if (!Enum.IsDefined(updateStatusDto.Status))
+                throw new DomainValidationException("Status inválido.");
+
             var task = await GetOwnedTaskAsync(userId, taskId);
 
             switch (updateStatusDto.Status)

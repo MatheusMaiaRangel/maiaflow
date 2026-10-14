@@ -67,7 +67,23 @@ namespace MaiaFlow.Domain.User
 					$"A senha do usuário deve conter no máximo {MaxPasswordLength} bytes.");
 		}
 
+		/// <summary>Validates name and e-mail only, so callers can reject bad input before any hashing or lookup.</summary>
+		public static void ValidateProfile(string? name, string? email)
+		{
+			ValidateName(name);
+			ValidateEmail(NormalizeEmail(email));
+		}
+
 		private static void ValidateProfile(string? name, string email, string passwordHash)
+		{
+			ValidateName(name);
+			ValidateEmail(email);
+
+			if (string.IsNullOrEmpty(passwordHash))
+				throw new DomainValidationException("A senha do usuário é obrigatória.");
+		}
+
+		private static void ValidateName(string? name)
 		{
 			if (string.IsNullOrWhiteSpace(name))
 				throw new DomainValidationException("O nome do usuário é obrigatório.");
@@ -79,15 +95,15 @@ namespace MaiaFlow.Domain.User
 			if (name.Trim().Length > MaxNameLength)
 				throw new DomainValidationException(
 					$"O nome do usuário deve conter no máximo {MaxNameLength} caracteres.");
+		}
 
+		private static void ValidateEmail(string email)
+		{
 			if (string.IsNullOrEmpty(email))
 				throw new DomainValidationException("O email do usuário é obrigatório.");
 
 			if (email.Length > MaxEmailLength || !IsValidEmail(email))
 				throw new DomainValidationException("O email do usuário é inválido.");
-
-			if (string.IsNullOrEmpty(passwordHash))
-				throw new DomainValidationException("A senha do usuário é obrigatória.");
 		}
 
 		private static bool IsValidEmail(string email) =>

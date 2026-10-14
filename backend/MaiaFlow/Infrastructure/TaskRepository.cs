@@ -25,6 +25,11 @@ namespace MaiaFlow.Infrastructure
             return await _dbSet.FindAsync(id);
         }
 
+        public async Task<int> CountByUserIdAsync(int userId)
+        {
+            return await _dbSet.CountAsync(t => t.UserId == userId);
+        }
+
         public async Task<List<TaskItem>> GetByUserIdAsync(int userId)
         {
             return await _dbSet.Where(t => t.UserId == userId).ToListAsync();

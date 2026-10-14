@@ -56,13 +56,18 @@ namespace MaiaFlow.Domain.Habit
         }
 
         /// <summary>
-        /// First day on which a recurrence change can take effect: not before <paramref name="today"/>
-        /// and after the days whose occurrences were already generated (those are never rewritten).
+        /// First day on which a recurrence change can take effect: not before <paramref name="today"/>,
+        /// not before the current rule starts (a habit may start in the future), and after the days whose
+        /// occurrences were already generated (those are never rewritten).
         /// </summary>
         public DateTime EarliestRecurrenceChange(DateTime today)
         {
-            var next = OccurrencesGeneratedUntil?.AddDays(1) ?? today.Date;
-            return next > today.Date ? next : today.Date;
+            var earliest = today.Date;
+            if (OccurrencesGeneratedUntil.HasValue && OccurrencesGeneratedUntil.Value.AddDays(1) > earliest)
+                earliest = OccurrencesGeneratedUntil.Value.AddDays(1);
+
+            var currentStart = GetCurrentRule()?.EffectiveFrom;
+            return currentStart.HasValue && currentStart.Value > earliest ? currentStart.Value : earliest;
         }
 
         /// <summary>
@@ -93,7 +98,10 @@ namespace MaiaFlow.Domain.Habit
             return newRule;
         }
 
-        /// <summary>The most recent rule (the one with no end date).</summary>
+        /// <summary>
+        /// The most recent rule (the one with no end date). If a change was scheduled for the future this is
+        /// the scheduled rule, not the one active today; use <see cref="GetRuleAt"/> for a specific day.
+        /// </summary>
         public HabitRecurrenceRule? GetCurrentRule() =>
             _rules.Where(r => r.EffectiveTo == null).OrderByDescending(r => r.EffectiveFrom).FirstOrDefault();
 

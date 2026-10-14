@@ -12,6 +12,8 @@ namespace MaiaFlow.Infrastructure
         public async Task<ReadUserDTO> CreateUserAsync(CreateUserDTO createUserDto)
         {
             
+            // Reject bad input before the database lookup and the (expensive) BCrypt hash.
+            User.ValidateProfile(createUserDto.Name, createUserDto.Email);
             User.ValidatePassword(createUserDto.Password);
 
             var existingUser = await repository.GetByEmailAsync(User.NormalizeEmail(createUserDto.Email));
@@ -47,6 +49,8 @@ namespace MaiaFlow.Infrastructure
             var name = updateUserDto.Name ?? user.Name;
             var email = updateUserDto.Email ?? user.Email;
 
+            User.ValidateProfile(name, email);
+
             var otherUser = await repository.GetByEmailAsync(User.NormalizeEmail(email));
             if (otherUser != null && otherUser.Id != user.Id)
                 throw new ConflictException("E-mail já cadastrado.");
@@ -69,7 +73,9 @@ namespace MaiaFlow.Infrastructure
         
         public async Task<AuthResponseDTO> LoginAsync(LoginUserDTO loginUserDto)
         {
-            var user = await repository.GetByEmailAsync(User.NormalizeEmail(loginUserDto.Email));
+            var email = User.NormalizeEmail(loginUserDto.Email);
+            // An e-mail longer than the column can never match; skip the lookup (the BCrypt check below still runs).
+            var user = email.Length > User.MaxEmailLength ? null : await repository.GetByEmailAsync(email);
 
             // Always run one BCrypt verification so an unknown e-mail takes as long as a wrong password.
             var passwordMatches = BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user?.Password ?? UnknownUserHash);

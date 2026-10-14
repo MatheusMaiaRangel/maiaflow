@@ -165,5 +165,45 @@ namespace MaiaFlow.Tests.Integration
                     $"{schema}.{property} should be nullable");
             }
         }
+
+        [Fact]
+        public async Task A_valid_token_of_a_deleted_user_gets_401_instead_of_a_server_error()
+        {
+            var client = await SignedInClientAsync(fixture);
+            await client.DeleteAsync("/api/users/me");
+
+            var response = await client.PostJsonAsync("/api/tasks", """{"title":"Órfã"}""");
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task A_login_with_an_absurdly_long_email_is_rejected_like_any_wrong_credential()
+        {
+            var response = await fixture.Factory.CreateClient().PostAsJsonAsync("/api/auth/login",
+                new { email = new string('a', 5000) + "@example.com", password = Password });
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Sign_up_rejects_oversized_fields_before_hashing()
+        {
+            var response = await fixture.Factory.CreateClient().PostAsJsonAsync("/api/users",
+                new { name = "Maria Silva", email = new string('a', 5000) + "@example.com", password = Password });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Undefined_enum_numbers_are_rejected()
+        {
+            var client = await SignedInClientAsync(fixture);
+            var task = await (await client.PostJsonAsync("/api/tasks", """{"title":"Tarefa"}""")).ReadJsonAsync();
+
+            var response = await client.PatchJsonAsync($"/api/tasks/{task.GetProperty("id").GetInt32()}/status", """{"status":99}""");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
     }
 }

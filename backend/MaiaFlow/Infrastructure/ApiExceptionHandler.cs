@@ -15,6 +15,7 @@ namespace MaiaFlow.Infrastructure
         ILogger<ApiExceptionHandler> logger) : IExceptionHandler
     {
         private const string UniqueViolationSqlState = "23505";
+        private const string ForeignKeyViolationSqlState = "23503";
         private const string DuplicateMessage = "Já existe um registro com esses dados.";
         private const string UnexpectedMessage = "Ocorreu um erro inesperado. Tente novamente.";
 
@@ -45,6 +46,9 @@ namespace MaiaFlow.Infrastructure
             BadHttpRequestException => (StatusCodes.Status400BadRequest, "Requisição inválida."),
             DbUpdateException { InnerException: PostgresException { SqlState: UniqueViolationSqlState } }
                 => (StatusCodes.Status409Conflict, DuplicateMessage),
+            // The row points to something that no longer exists, typically a deleted user with a still-valid token.
+            DbUpdateException { InnerException: PostgresException { SqlState: ForeignKeyViolationSqlState } }
+                => (StatusCodes.Status401Unauthorized, "Sessão inválida. Entre novamente."),
             _ => (StatusCodes.Status500InternalServerError, UnexpectedMessage)
         };
     }

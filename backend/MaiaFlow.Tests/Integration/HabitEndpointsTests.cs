@@ -251,5 +251,80 @@ namespace MaiaFlow.Tests.Integration
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+
+        [Theory]
+        [InlineData("0001-01-01T00:00:00")]
+        [InlineData("2020-01-01T00:00:00")]
+        [InlineData("2099-01-01T00:00:00")]
+        public async Task Habit_start_dates_far_from_today_return_400(string startDate)
+        {
+            var (factory, _) = FactoryAt(Today);
+            var client = await SignedInClientAsync(factory);
+
+            var response = await client.PostJsonAsync("/api/habits",
+                $$"""{"title":"Treinar","startDate":"{{startDate}}","frequencyType":"Daily","daysOfWeek":0}""");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("?start=9999-12-01&end=9999-12-31")]
+        [InlineData("?start=1990-01-01&end=1990-02-01")]
+        public async Task Calendar_ranges_far_from_today_return_400(string query)
+        {
+            var (factory, _) = FactoryAt(Today);
+            var client = await SignedInClientAsync(factory);
+
+            var response = await client.GetAsync("/api/habits/calendar" + query);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Days_of_the_month_are_deduplicated_sorted_and_limited_for_every_frequency()
+        {
+            var client = await SignedInClientAsync(fixture);
+            var tooMany = string.Join(",", Enumerable.Range(1, 32));
+
+            var ok = await (await client.PostJsonAsync("/api/habits", $$"""
+                {"title":"Contas","startDate":"{{DateTime.UtcNow:yyyy-MM-dd}}T00:00:00","frequencyType":"Monthly","daysOfWeek":0,"daysOfMonth":[15,1,15]}
+                """)).ReadJsonAsync();
+            var rejected = await client.PostJsonAsync("/api/habits", $$"""
+                {"title":"Contas","startDate":"{{DateTime.UtcNow:yyyy-MM-dd}}T00:00:00","frequencyType":"Daily","daysOfWeek":0,"daysOfMonth":[{{tooMany}}]}
+                """);
+
+            Assert.Equal([1, 15], ok.GetProperty("currentDaysOfMonth").EnumerateArray().Select(d => d.GetInt32()));
+            Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+        }
+
+        [Fact]
+        public async Task A_habit_that_starts_in_the_future_can_change_recurrence_without_effectiveFrom()
+        {
+            var (factory, _) = FactoryAt(Today);
+            var client = await SignedInClientAsync(factory);
+            var created = await (await client.PostJsonAsync("/api/habits", DailyHabit("Futuro", Today.AddDays(7)))).ReadJsonAsync();
+
+            var response = await client.PatchJsonAsync($"/api/habits/{created.GetProperty("id").GetInt32()}/recurrence",
+                """{"frequencyType":"Weekly","daysOfWeek":0}""");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.StartsWith("2026-10-21", (await response.ReadJsonAsync()).GetProperty("currentEffectiveFrom").GetString());
+        }
+
+        [Fact]
+        public async Task Generating_the_calendar_again_does_not_undo_a_recurrence_change_in_between()
+        {
+            var (factory, _) = FactoryAt(Today);
+            var client = await SignedInClientAsync(factory);
+            var created = await (await client.PostJsonAsync("/api/habits", DailyHabit("Treinar", Today.AddDays(-3)))).ReadJsonAsync();
+            await client.GetAsync(CalendarUrl(Today.AddDays(-3), Today));
+            await client.PatchJsonAsync($"/api/habits/{created.GetProperty("id").GetInt32()}/recurrence",
+                """{"frequencyType":"Weekly","daysOfWeek":0,"effectiveFrom":"2026-10-20T00:00:00"}""");
+
+            var calendar = Items(await (await client.GetAsync(CalendarUrl(Today, Today.AddDays(8)))).ReadJsonAsync());
+
+            Assert.Equal(["2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18", "2026-10-19", "2026-10-20"],
+                Dates(calendar));
+        }
     }
 }

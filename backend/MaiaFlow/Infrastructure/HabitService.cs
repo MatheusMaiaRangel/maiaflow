@@ -11,12 +11,22 @@ namespace MaiaFlow.Infrastructure
         TimeProvider timeProvider) : IHabitService
     {
         private const int MaxCalendarRangeDays = 366;
+        private const int MaxHabitsPerUser = 200;
+        private const int MaxStartYearsInPast = 2;     // keeps first-time occurrence generation small
+        private const int MaxYearsInFuture = 5;
+        private const int MaxCalendarYearsInPast = 10;
+
 
         // "Today" is the UTC date for now; see docs/handoffs/phase-1.md (time zones).
         private DateTime Today => timeProvider.GetUtcNow().UtcDateTime.Date;
 
         public async Task<ReadHabitDTO> CreateHabitAsync(int userId, CreateHabitDTO createHabitDto)
         {
+            if (await habitRepository.CountByUserIdAsync(userId) >= MaxHabitsPerUser)
+                throw new DomainValidationException($"Limite de {MaxHabitsPerUser} hábitos atingido.");
+
+            ValidateDateWindow(createHabitDto.StartDate, "A data de início", MaxStartYearsInPast);
+
             var habit = Habit.Create(
                 createHabitDto.Title,
                 createHabitDto.Description,
@@ -58,6 +68,9 @@ namespace MaiaFlow.Infrastructure
         {
             var habit = await GetOwnedHabitAsync(userId, habitId);
 
+            if (changeDto.EffectiveFrom.HasValue)
+                ValidateDateWindow(changeDto.EffectiveFrom.Value, "A data de início da recorrência", MaxStartYearsInPast);
+
             var effectiveFrom = changeDto.EffectiveFrom ?? habit.EarliestRecurrenceChange(Today);
 
             habit.ChangeRecurrenceRule(
@@ -80,6 +93,8 @@ namespace MaiaFlow.Infrastructure
         public async Task<List<ReadHabitOccurrenceDTO>> GetCalendarAsync(int userId, DateTime start, DateTime end)
         {
             ValidateCalendarRange(start, end);
+            ValidateDateWindow(start, "A data start", MaxCalendarYearsInPast);
+            ValidateDateWindow(end, "A data end", MaxCalendarYearsInPast);
 
             var habits = await habitRepository.GetByUserIdAsync(userId);
             var today = Today;
@@ -129,6 +144,9 @@ namespace MaiaFlow.Infrastructure
             var habit = await habitRepository.GetByIdAsync(occurrence.HabitId);
             if (habit == null || habit.UserId != userId) throw new NotFoundException("Ocorrência não encontrada.");
 
+            if (!Enum.IsDefined(statusDto.Status))
+                throw new DomainValidationException("Status inválido.");
+
             switch (statusDto.Status)
             {
                 case HabitOccurrenceStatus.Completed:
@@ -163,7 +181,15 @@ namespace MaiaFlow.Infrastructure
                 await occurrenceRepository.AddRangeAsync(toCreate);
 
             habit.MarkOccurrencesGeneratedUntil(upToDate);
-            await habitRepository.UpdateAsync(habit);
+            await habitRepository.AdvanceOccurrencesGeneratedUntilAsync(habit.Id, upToDate);
+        }
+
+        // Dates far from today are never useful and would make the server generate or loop over huge ranges.
+        private void ValidateDateWindow(DateTime date, string label, int maxYearsInPast)
+        {
+            if (date.Date < Today.AddYears(-maxYearsInPast) || date.Date > Today.AddYears(MaxYearsInFuture))
+                throw new DomainValidationException(
+                    $"{label} deve estar entre {maxYearsInPast} anos no passado e {MaxYearsInFuture} anos no futuro.");
         }
 
         private static void ValidateCalendarRange(DateTime start, DateTime end)

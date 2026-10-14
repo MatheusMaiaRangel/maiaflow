@@ -46,11 +46,18 @@ namespace MaiaFlow
                 });
             });
             var jwtKey = RequireSetting(builder.Configuration, "Jwt:Key");
-            if (jwtKey.Length < MinJwtKeyLength)
+            if (jwtKey.Length < MinJwtKeyLength || jwtKey.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException(
-                    $"Jwt:Key must have at least {MinJwtKeyLength} characters.");
+                    $"Jwt:Key must be a random value with at least {MinJwtKeyLength} characters " +
+                    "(the CHANGE_ME placeholder from the example file is not accepted).");
             }
+            var expiresMinutes = builder.Configuration.GetValue("Jwt:ExpiresMinutes", 60);
+            if (expiresMinutes is < 5 or > 10080)
+            {
+                throw new InvalidOperationException("Jwt:ExpiresMinutes must be between 5 and 10080.");
+            }
+            builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = MaxRequestBodyBytes);
             var jwtIssuer = RequireSetting(builder.Configuration, "Jwt:Issuer");
             var jwtAudience = RequireSetting(builder.Configuration, "Jwt:Audience");
             builder.Services
@@ -69,6 +76,7 @@ namespace MaiaFlow
                         ValidIssuer = jwtIssuer,
                         ValidateAudience = true,
                         ValidAudience = jwtAudience,
+                        ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.Zero
                     };
@@ -104,6 +112,10 @@ namespace MaiaFlow
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHsts();
+            }
             app.UseHttpsRedirection();
             
             app.UseCors(CorsPolicyName);
@@ -121,6 +133,7 @@ namespace MaiaFlow
         }
 
         private const int MinJwtKeyLength = 32;
+        private const long MaxRequestBodyBytes = 64 * 1024;
         private const string CorsPolicyName = "Frontend";
 
         // Secrets are not committed (see docs/ROADMAP.md, D7): fail fast with a clear message

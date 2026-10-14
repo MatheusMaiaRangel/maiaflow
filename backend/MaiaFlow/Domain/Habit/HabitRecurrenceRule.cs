@@ -9,6 +9,7 @@ namespace MaiaFlow.Domain.Habit
     public class HabitRecurrenceRule
     {
         private const WeekDays AllWeekDays = (WeekDays)127;
+        public const int MaxIntervalDays = 3650;
 
         public int Id { get; }
         public int HabitId { get; private set; }
@@ -38,7 +39,8 @@ namespace MaiaFlow.Domain.Habit
             WeekDays daysOfWeek, List<int> daysOfMonth, DateTime effectiveFrom)
         {
             Validate(frequencyType, intervalDays, daysOfWeek, daysOfMonth);
-            return new HabitRecurrenceRule(habitId, frequencyType, intervalDays, daysOfWeek, daysOfMonth, effectiveFrom);
+            var days = daysOfMonth.Distinct().Order().ToList();
+            return new HabitRecurrenceRule(habitId, frequencyType, intervalDays, daysOfWeek, days, effectiveFrom);
         }
 
         public void Close(DateTime effectiveTo)
@@ -85,8 +87,13 @@ namespace MaiaFlow.Domain.Habit
         private static void Validate(HabitFrequencyType frequencyType, int? intervalDays,
             WeekDays daysOfWeek, List<int> daysOfMonth)
         {
-            if (frequencyType == HabitFrequencyType.IntervalDays && (intervalDays == null || intervalDays <= 0))
-                throw new DomainValidationException("O intervalo em dias deve ser maior que zero.");
+            if (!Enum.IsDefined(frequencyType))
+                throw new DomainValidationException("A frequência do hábito é inválida.");
+
+            if (frequencyType == HabitFrequencyType.IntervalDays
+                && (intervalDays == null || intervalDays <= 0 || intervalDays > MaxIntervalDays))
+                throw new DomainValidationException(
+                    $"O intervalo em dias deve estar entre 1 e {MaxIntervalDays}.");
 
             if ((daysOfWeek & ~AllWeekDays) != 0)
                 throw new DomainValidationException("Os dias da semana informados são inválidos.");
@@ -94,14 +101,12 @@ namespace MaiaFlow.Domain.Habit
             if (frequencyType == HabitFrequencyType.SpecificDaysOfWeek && daysOfWeek == WeekDays.None)
                 throw new DomainValidationException("Selecione pelo menos um dia da semana para o hábito.");
 
-            if (frequencyType == HabitFrequencyType.Monthly)
-            {
-                if (daysOfMonth.Count == 0)
-                    throw new DomainValidationException("Selecione pelo menos um dia do mês para o hábito.");
+            // Checked for every frequency type so the stored list stays small.
+            if (daysOfMonth.Count > 31 || daysOfMonth.Any(d => d < 1 || d > 31))
+                throw new DomainValidationException("Os dias do mês devem estar entre 1 e 31.");
 
-                if (daysOfMonth.Any(d => d < 1 || d > 31))
-                    throw new DomainValidationException("Os dias do mês devem estar entre 1 e 31.");
-            }
+            if (frequencyType == HabitFrequencyType.Monthly && daysOfMonth.Count == 0)
+                throw new DomainValidationException("Selecione pelo menos um dia do mês para o hábito.");
         }
     }
 }
