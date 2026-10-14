@@ -7,15 +7,19 @@ namespace MaiaFlow.Infrastructure
 {
     public class UserService(IUserRepository repository, ITokenService tokenService) : IUserService
     {
+        private static readonly string UnknownUserHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString());
+
         public async Task<ReadUserDTO> CreateUserAsync(CreateUserDTO createUserDto)
         {
             
-            var existingUser = await repository.GetByEmailAsync(createUserDto.Email);
+            User.ValidatePassword(createUserDto.Password);
+
+            var existingUser = await repository.GetByEmailAsync(User.NormalizeEmail(createUserDto.Email));
             if (existingUser != null)
                 throw new ConflictException("E-mail já cadastrado.");
-            
+
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
-            
+
             var user = User.Create(createUserDto.Name, createUserDto.Email, hashedPassword);
 
             await repository.AddAsync(user);
@@ -42,13 +46,19 @@ namespace MaiaFlow.Infrastructure
             
             var name = updateUserDto.Name ?? user.Name;
             var email = updateUserDto.Email ?? user.Email;
-            
-            // if the user changes the password will create a new hash pass
-            var password = updateUserDto.Password is null
-                ? user.Password
-                : BCrypt.Net.BCrypt.HashPassword(updateUserDto.Password);
-            
-            
+
+            var otherUser = await repository.GetByEmailAsync(User.NormalizeEmail(email));
+            if (otherUser != null && otherUser.Id != user.Id)
+                throw new ConflictException("E-mail já cadastrado.");
+
+            // a new password is validated in plain text and then hashed
+            var password = user.Password;
+            if (updateUserDto.Password is not null)
+            {
+                User.ValidatePassword(updateUserDto.Password);
+                password = BCrypt.Net.BCrypt.HashPassword(updateUserDto.Password);
+            }
+
             user.Update(name, email, password);
             
             await repository.UpdateAsync(user);
@@ -59,8 +69,11 @@ namespace MaiaFlow.Infrastructure
         
         public async Task<AuthResponseDTO> LoginAsync(LoginUserDTO loginUserDto)
         {
-            var user = await repository.GetByEmailAsync(loginUserDto.Email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.Password))
+            var user = await repository.GetByEmailAsync(User.NormalizeEmail(loginUserDto.Email));
+
+            // Always run one BCrypt verification so an unknown e-mail takes as long as a wrong password.
+            var passwordMatches = BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user?.Password ?? UnknownUserHash);
+            if (user == null || !passwordMatches)
                 throw new UnauthorizedAccessException("Email ou senha inválidos.");
 
             var token = tokenService.GenerateToken(user);
