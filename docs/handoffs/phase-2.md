@@ -7,10 +7,7 @@ theme, Portuguese copy). The browser only talks to the Next.js app; the app talk
 the API's JWT in an `httpOnly` cookie. API types are generated from the OpenAPI document, and the
 backend's OpenAPI contract was tightened so those types are precise.
 
-- Status: **in review**. The owner is testing; nothing from this phase's frontend work is committed yet
-  (see D17).
-- Already on `main` before the "test first" instruction: the Next.js scaffold, the OpenAPI contract
-  change, and the workflow docs.
+- Status: **done**, tested by the owner and pushed to `main` on 2026-10-14.
 - Finished on: 2026-10-14
 
 ## What changed
