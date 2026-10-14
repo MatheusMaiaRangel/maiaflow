@@ -47,8 +47,19 @@ dotnet ef migrations add <Name> --project backend/MaiaFlow   # after changing th
 dotnet ef database update --project backend/MaiaFlow
 ```
 
-## Build
+## Build and test
 
 ```bash
 dotnet build backend/MaiaFlow
+dotnet test backend/MaiaFlow.Tests
 ```
+
+The integration tests start their own PostgreSQL with Testcontainers, so Docker must be running;
+they do not touch your development database. Add `--collect:"XPlat Code Coverage"` for coverage.
+
+## API
+
+All routes live under `/api`. Errors are `application/problem+json` (RFC 9457). The full contract
+is in Swagger (`/swagger`) and in [`docs/handoffs/phase-1.md`](docs/handoffs/phase-1.md).
+Browser clients on another origin must be listed in `Cors:AllowedOrigins` (Development allows
+`http://localhost:3000`).
