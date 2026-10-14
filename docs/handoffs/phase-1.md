@@ -7,7 +7,7 @@ The API now has a stable, tested contract: every route is under `/api`, errors a
 optional fields, and the habit recurrence/calendar bugs found in the review are fixed. A test
 project covers the domain and the endpoints against a real PostgreSQL.
 
-- Pull request: _to be added_
+- Pull request: https://github.com/MatheusMaiaRangel/maiaflow/pull/11 (stacked on phase 0, PR #10)
 - Branch: `feat/phase-1-api-contract` (based on `chore/phase-0-foundation`, see PR #10 of phase 0)
 - Finished on: 2026-10-13
 
