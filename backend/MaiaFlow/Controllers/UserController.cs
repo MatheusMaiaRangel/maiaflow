@@ -32,6 +32,7 @@ namespace MaiaFlow.Controllers
         /// <summary>The signed-in user's profile.</summary>
         [HttpGet("users/me")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadUserDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<ReadUserDTO>> GetMe()
         {
             return Ok(await userService.GetUserByIdAsync(UserId));
@@ -42,6 +43,7 @@ namespace MaiaFlow.Controllers
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+        [ProducesResponseType<ReadUserDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<ReadUserDTO>> UpdateMe(UpdateUserDTO updateUserDto)
         {
             return Ok(await userService.UpdateUserAsync(UserId, updateUserDto));

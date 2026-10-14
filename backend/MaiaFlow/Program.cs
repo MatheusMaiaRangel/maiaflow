@@ -34,6 +34,10 @@ namespace MaiaFlow
                     In = ParameterLocation.Header,
                     Description = "Informe apenas o token JWT."
                 });
+                // Optional<T> PATCH fields are plain nullable values on the wire: absent keeps, null clears.
+                options.MapType<Optional<string>>(() => NullableSchema(new OpenApiSchema { Type = JsonSchemaType.String }));
+                options.MapType<Optional<DateTime?>>(() => NullableSchema(
+                    new OpenApiSchema { Type = JsonSchemaType.String, Format = "date-time" }));
                 options.IncludeXmlComments(
                     Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
                 options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
@@ -82,6 +86,7 @@ namespace MaiaFlow
                     .WithOrigins(corsOrigins)
                     .AllowAnyHeader()
                     .AllowAnyMethod()));
+            builder.Services.AddSingleton(TimeProvider.System);
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
@@ -106,6 +111,13 @@ namespace MaiaFlow
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
+        }
+
+        // OpenAPI 3.0 spells "or null" as nullable: true.
+        private static OpenApiSchema NullableSchema(OpenApiSchema schema)
+        {
+            schema.Extensions = new Dictionary<string, IOpenApiExtension> { ["nullable"] = new JsonNodeExtension(true) };
+            return schema;
         }
 
         private const int MinJwtKeyLength = 32;

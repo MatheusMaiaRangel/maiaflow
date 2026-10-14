@@ -34,6 +34,12 @@ namespace MaiaFlow.Domain.Habit
             return this;
         }
 
+        public HabitOccurrence MarkAsPending()
+        {
+            Status = HabitOccurrenceStatus.Pending;
+            return this;
+        }
+
         public HabitOccurrence MarkAsNotCompleted()
         {
             Status = HabitOccurrenceStatus.NotCompleted;

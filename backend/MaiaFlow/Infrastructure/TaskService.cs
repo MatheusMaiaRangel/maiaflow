@@ -33,8 +33,8 @@ namespace MaiaFlow.Infrastructure
             var task = await GetOwnedTaskAsync(userId, taskId);
 
             var title = updateTaskDto.Title ?? task.Title;
-            var description = updateTaskDto.Description ?? task.Description;
-            var dueDate = updateTaskDto.DueDate ?? task.DueDate;
+            var description = updateTaskDto.Description.Resolve(task.Description);
+            var dueDate = updateTaskDto.DueDate.Resolve(task.DueDate);
 
             task.Update(title, description, dueDate);
 

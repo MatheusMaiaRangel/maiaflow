@@ -5,9 +5,16 @@ using MaiaFlow.Domain.Habit;
 
 namespace MaiaFlow.Infrastructure
 {
-    public class HabitService(IHabitRepository habitRepository, IHabitOccurrenceRepository occurrenceRepository)
-        : IHabitService
+    public class HabitService(
+        IHabitRepository habitRepository,
+        IHabitOccurrenceRepository occurrenceRepository,
+        TimeProvider timeProvider) : IHabitService
     {
+        private const int MaxCalendarRangeDays = 366;
+
+        // "Today" is the UTC date for now; see docs/handoffs/phase-1.md (time zones).
+        private DateTime Today => timeProvider.GetUtcNow().UtcDateTime.Date;
+
         public async Task<ReadHabitDTO> CreateHabitAsync(int userId, CreateHabitDTO createHabitDto)
         {
             var habit = Habit.Create(
@@ -41,7 +48,7 @@ namespace MaiaFlow.Infrastructure
         {
             var habit = await GetOwnedHabitAsync(userId, habitId);
 
-            habit.UpdateDetails(updateDto.Title ?? habit.Title, updateDto.Description ?? habit.Description);
+            habit.UpdateDetails(updateDto.Title ?? habit.Title, updateDto.Description.Resolve(habit.Description));
 
             await habitRepository.UpdateAsync(habit);
             return ToDto(habit);
@@ -51,7 +58,7 @@ namespace MaiaFlow.Infrastructure
         {
             var habit = await GetOwnedHabitAsync(userId, habitId);
 
-            var effectiveFrom = changeDto.EffectiveFrom ?? DateTime.UtcNow.Date;
+            var effectiveFrom = changeDto.EffectiveFrom ?? habit.EarliestRecurrenceChange(Today);
 
             habit.ChangeRecurrenceRule(
                 changeDto.FrequencyType,
@@ -72,8 +79,10 @@ namespace MaiaFlow.Infrastructure
 
         public async Task<List<ReadHabitOccurrenceDTO>> GetCalendarAsync(int userId, DateTime start, DateTime end)
         {
+            ValidateCalendarRange(start, end);
+
             var habits = await habitRepository.GetByUserIdAsync(userId);
-            var today = DateTime.UtcNow.Date;
+            var today = Today;
             var materializeUpTo = today < end.Date ? today : end.Date;
 
             // Os dias já passados/hoje existam como Pending no banco
@@ -97,12 +106,13 @@ namespace MaiaFlow.Infrastructure
             {
                 foreach (var habit in habits)
                 {
-                    var rule = habit.GetCurrentRule();
-                    if (rule == null) continue;
-
                     for (var date = materializeUpTo.AddDays(1); date <= end.Date; date = date.AddDays(1))
                     {
-                        if (rule.OccursOn(date))
+                        if (date < start.Date) continue;
+
+                        // The rule can change in the future, so look it up day by day.
+                        var rule = habit.GetRuleAt(date);
+                        if (rule != null && rule.OccursOn(date))
                             result.Add(new ReadHabitOccurrenceDTO(0, habit.Id, habit.Title, date, HabitOccurrenceStatus.Pending));
                     }
                 }
@@ -119,10 +129,18 @@ namespace MaiaFlow.Infrastructure
             var habit = await habitRepository.GetByIdAsync(occurrence.HabitId);
             if (habit == null || habit.UserId != userId) throw new NotFoundException("Ocorrência não encontrada.");
 
-            if (statusDto.Status == HabitOccurrenceStatus.Completed)
-                occurrence.MarkAsCompleted();
-            else if (statusDto.Status == HabitOccurrenceStatus.NotCompleted)
-                occurrence.MarkAsNotCompleted();
+            switch (statusDto.Status)
+            {
+                case HabitOccurrenceStatus.Completed:
+                    occurrence.MarkAsCompleted();
+                    break;
+                case HabitOccurrenceStatus.NotCompleted:
+                    occurrence.MarkAsNotCompleted();
+                    break;
+                case HabitOccurrenceStatus.Pending:
+                    occurrence.MarkAsPending();
+                    break;
+            }
 
             await occurrenceRepository.UpdateAsync(occurrence);
             return ToOccurrenceDto(occurrence, habit);
@@ -148,6 +166,18 @@ namespace MaiaFlow.Infrastructure
             await habitRepository.UpdateAsync(habit);
         }
 
+        private static void ValidateCalendarRange(DateTime start, DateTime end)
+        {
+            if (start == default || end == default)
+                throw new DomainValidationException("Informe as datas start e end.");
+
+            if (end.Date < start.Date)
+                throw new DomainValidationException("A data end não pode ser anterior à data start.");
+
+            if ((end.Date - start.Date).TotalDays >= MaxCalendarRangeDays)
+                throw new DomainValidationException($"O intervalo máximo é de {MaxCalendarRangeDays} dias.");
+        }
+
         private static ReadHabitDTO ToDto(Habit habit)
         {
             var rule = habit.GetCurrentRule();
@@ -156,6 +186,7 @@ namespace MaiaFlow.Infrastructure
                 habit.Title,
                 habit.Description,
                 habit.StartDate,
+                rule?.EffectiveFrom ?? habit.StartDate,
                 rule?.FrequencyType ?? default,
                 rule?.IntervalDays,
                 (int)(rule?.DaysOfWeek ?? WeekDays.None),

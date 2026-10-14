@@ -18,6 +18,7 @@ namespace MaiaFlow.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType<List<ReadHabitDTO>>(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ReadHabitDTO>>> GetHabits()
         {
             return Ok(await habitService.GetHabitsByUserAsync(UserId));
@@ -25,6 +26,7 @@ namespace MaiaFlow.Controllers
 
         [HttpGet("{id:int}")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadHabitDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<ReadHabitDTO>> GetHabitById(int id)
         {
             return Ok(await habitService.GetHabitByIdAsync(UserId, id));
@@ -34,6 +36,7 @@ namespace MaiaFlow.Controllers
         [HttpPatch("{id:int}")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadHabitDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<ReadHabitDTO>> UpdateHabitDetails(int id, UpdateHabitDetailsDTO updateDto)
         {
             return Ok(await habitService.UpdateHabitDetailsAsync(UserId, id, updateDto));
@@ -45,6 +48,7 @@ namespace MaiaFlow.Controllers
         [HttpPatch("{id:int}/recurrence")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadHabitDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<ReadHabitDTO>> ChangeRecurrence(int id, ChangeRecurrenceDTO changeDto)
         {
             return Ok(await habitService.ChangeRecurrenceRuleAsync(UserId, id, changeDto));
@@ -67,6 +71,7 @@ namespace MaiaFlow.Controllers
         /// </summary>
         [HttpGet("calendar")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<List<ReadHabitOccurrenceDTO>>(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ReadHabitOccurrenceDTO>>> GetCalendar(
             [FromQuery] DateTime start, [FromQuery] DateTime end)
         {
@@ -76,6 +81,7 @@ namespace MaiaFlow.Controllers
         /// <summary>Sets an occurrence to <c>Pending</c>, <c>Completed</c>, or <c>NotCompleted</c>.</summary>
         [HttpPatch("occurrences/{occurrenceId:int}/status")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadHabitOccurrenceDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<ReadHabitOccurrenceDTO>> UpdateOccurrenceStatus(
             int occurrenceId, UpdateOccurrenceStatusDTO statusDto)
         {

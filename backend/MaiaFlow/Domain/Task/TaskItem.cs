@@ -4,6 +4,9 @@ namespace MaiaFlow.Domain.TaskItem
 {
     public class TaskItem
     {
+        public const int MaxTitleLength = 150;
+        public const int MaxDescriptionLength = 500;
+
         public int Id { get; }
         public string Title { get; private set; }
         public string? Description { get; private set; }
@@ -28,31 +31,40 @@ namespace MaiaFlow.Domain.TaskItem
         // Factory Method
         public static TaskItem Create(string title, string? description, DateTime? dueDate, int userId)
         {
-            if (string.IsNullOrEmpty(title))
-                throw new DomainValidationException("O título da tarefa é obrigatório.");
-
-            if (title.Length < 1)
-                throw new DomainValidationException("O título da tarefa deve conter pelo menos 1 caracter.");
-
             if (userId <= 0)
                 throw new DomainValidationException("A tarefa deve estar vinculada a um usuário válido.");
 
-            return new TaskItem(title, description, dueDate, userId);
+            var (validTitle, validDescription) = Validate(title, description);
+            return new TaskItem(validTitle, validDescription, dueDate, userId);
         }
 
         public TaskItem Update(string title, string? description, DateTime? dueDate)
         {
-            if (string.IsNullOrEmpty(title))
-                throw new DomainValidationException("O título da tarefa é obrigatório.");
+            var (validTitle, validDescription) = Validate(title, description);
 
-            if (title.Length < 3)
-                throw new DomainValidationException("O título da tarefa deve conter pelo menos 3 caracteres.");
-
-            Title = title;
-            Description = description;
+            Title = validTitle;
+            Description = validDescription;
             DueDate = dueDate;
 
             return this;
+        }
+
+        // Same rules on create and update.
+        private static (string Title, string? Description) Validate(string? title, string? description)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+                throw new DomainValidationException("O título da tarefa é obrigatório.");
+
+            var trimmedTitle = title.Trim();
+            if (trimmedTitle.Length > MaxTitleLength)
+                throw new DomainValidationException(
+                    $"O título da tarefa deve conter no máximo {MaxTitleLength} caracteres.");
+
+            if (description is { Length: > MaxDescriptionLength })
+                throw new DomainValidationException(
+                    $"A descrição da tarefa deve conter no máximo {MaxDescriptionLength} caracteres.");
+
+            return (trimmedTitle, string.IsNullOrWhiteSpace(description) ? null : description);
         }
 
         public TaskItem MarkAsCompleted()

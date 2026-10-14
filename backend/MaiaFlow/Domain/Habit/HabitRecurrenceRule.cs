@@ -31,7 +31,7 @@ namespace MaiaFlow.Domain.Habit
             IntervalDays = intervalDays;
             DaysOfWeek = daysOfWeek;
             DaysOfMonth = daysOfMonth;
-            EffectiveFrom = effectiveFrom;
+            EffectiveFrom = effectiveFrom.Date;
         }
 
         public static HabitRecurrenceRule Create(int habitId, HabitFrequencyType frequencyType, int? intervalDays,
@@ -43,9 +43,15 @@ namespace MaiaFlow.Domain.Habit
 
         public void Close(DateTime effectiveTo)
         {
-            EffectiveTo = effectiveTo;
+            EffectiveTo = effectiveTo.Date;
         }
 
+        /// <summary>
+        /// Whether the habit happens on <paramref name="date"/>. <c>Weekly</c>, <c>Yearly</c> and
+        /// <c>IntervalDays</c> are anchored on <see cref="EffectiveFrom"/> (the habit's start date, or the
+        /// day a later rule began). A <c>Yearly</c> habit anchored on 29 February only happens in leap
+        /// years, and <c>Monthly</c> days that a month does not have (such as 31) are skipped.
+        /// </summary>
         public bool OccursOn(DateTime date)
         {
             if (date.Date < EffectiveFrom.Date) return false;

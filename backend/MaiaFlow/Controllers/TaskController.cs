@@ -19,6 +19,7 @@ namespace MaiaFlow.Controllers
 
         /// <summary>Lists the signed-in user's tasks.</summary>
         [HttpGet]
+        [ProducesResponseType<List<ReadTaskDTO>>(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ReadTaskDTO>>> GetTasks()
         {
             return Ok(await taskService.GetTasksByUserAsync(UserId));
@@ -26,6 +27,7 @@ namespace MaiaFlow.Controllers
 
         [HttpGet("{id:int}")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadTaskDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<ReadTaskDTO>> GetTaskById(int id)
         {
             return Ok(await taskService.GetTaskByIdAsync(UserId, id));
@@ -35,6 +37,7 @@ namespace MaiaFlow.Controllers
         [HttpPatch("{id:int}")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadTaskDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<ReadTaskDTO>> UpdateTask(int id, UpdateTaskDTO updateTaskDto)
         {
             return Ok(await taskService.UpdateTaskAsync(UserId, id, updateTaskDto));
@@ -42,6 +45,7 @@ namespace MaiaFlow.Controllers
 
         [HttpPatch("{id:int}/status")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadTaskDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<ReadTaskDTO>> UpdateTaskStatus(int id, UpdateTaskStatusDTO updateStatusDto)
         {
             return Ok(await taskService.UpdateTaskStatusAsync(UserId, id, updateStatusDto));
