@@ -1,13 +1,19 @@
 using MaiaFlow.Application;
 using MaiaFlow.Application.DTOs.TaskItem;
+using MaiaFlow.Domain.Exceptions;
 using MaiaFlow.Domain.TaskItem;
 
 namespace MaiaFlow.Infrastructure
 {
     public class TaskService(ITaskRepository repository) : ITaskService
     {
+        private const int MaxTasksPerUser = 5000;
+
         public async Task<ReadTaskDTO> CreateTaskAsync(int userId, CreateTaskDTO createTaskDto)
         {
+            if (await repository.CountByUserIdAsync(userId) >= MaxTasksPerUser)
+                throw new DomainValidationException($"Limite de {MaxTasksPerUser} tarefas atingido.");
+
             var task = TaskItem.Create(createTaskDto.Title, createTaskDto.Description, createTaskDto.DueDate, userId);
 
             await repository.AddAsync(task);
@@ -27,14 +33,13 @@ namespace MaiaFlow.Infrastructure
             return tasks.Select(ToDto).ToList();
         }
 
-        public async Task<ReadTaskDTO?> UpdateTaskAsync(int userId, int taskId, UpdateTaskDTO updateTaskDto)
+        public async Task<ReadTaskDTO> UpdateTaskAsync(int userId, int taskId, UpdateTaskDTO updateTaskDto)
         {
-            var task = await repository.GetByIdAsync(taskId);
-            if (task == null || task.UserId != userId) return null;
+            var task = await GetOwnedTaskAsync(userId, taskId);
 
             var title = updateTaskDto.Title ?? task.Title;
-            var description = updateTaskDto.Description ?? task.Description;
-            var dueDate = updateTaskDto.DueDate ?? task.DueDate;
+            var description = updateTaskDto.Description.Resolve(task.Description);
+            var dueDate = updateTaskDto.DueDate.Resolve(task.DueDate);
 
             task.Update(title, description, dueDate);
 
@@ -43,10 +48,12 @@ namespace MaiaFlow.Infrastructure
             return ToDto(task);
         }
 
-        public async Task<ReadTaskDTO?> UpdateTaskStatusAsync(int userId, int taskId, UpdateTaskStatusDTO updateStatusDto)
+        public async Task<ReadTaskDTO> UpdateTaskStatusAsync(int userId, int taskId, UpdateTaskStatusDTO updateStatusDto)
         {
-            var task = await repository.GetByIdAsync(taskId);
-            if (task == null || task.UserId != userId) return null;
+            if (!Enum.IsDefined(updateStatusDto.Status))
+                throw new DomainValidationException("Status inválido.");
+
+            var task = await GetOwnedTaskAsync(userId, taskId);
 
             switch (updateStatusDto.Status)
             {
@@ -66,20 +73,17 @@ namespace MaiaFlow.Infrastructure
             return ToDto(task);
         }
 
-        public async Task<bool> DeleteTaskAsync(int userId, int taskId)
+        public async Task DeleteTaskAsync(int userId, int taskId)
         {
-            var task = await repository.GetByIdAsync(taskId);
-            if (task == null || task.UserId != userId) return false;
-
+            var task = await GetOwnedTaskAsync(userId, taskId);
             await repository.DeleteAsync(task);
-            return true;
         }
 
         private async Task<TaskItem> GetOwnedTaskAsync(int userId, int taskId)
         {
             var task = await repository.GetByIdAsync(taskId);
             if (task == null || task.UserId != userId)
-                throw new Exception("Tarefa não encontrada");
+                throw new NotFoundException("Tarefa não encontrada.");
 
             return task;
         }

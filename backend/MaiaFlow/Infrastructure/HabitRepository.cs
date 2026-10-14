@@ -25,6 +25,21 @@ namespace MaiaFlow.Infrastructure
             return await _dbSet.Include(h => h.Rules).FirstOrDefaultAsync(h => h.Id == id);
         }
 
+        // Touches only the cursor, never the rules, so a concurrent recurrence change is not overwritten,
+        // and the cursor can only move forward.
+        public async Task AdvanceOccurrencesGeneratedUntilAsync(int habitId, DateTime date)
+        {
+            var day = date.Date;
+            await _dbSet
+                .Where(h => h.Id == habitId && (h.OccurrencesGeneratedUntil == null || h.OccurrencesGeneratedUntil < day))
+                .ExecuteUpdateAsync(s => s.SetProperty(h => h.OccurrencesGeneratedUntil, day));
+        }
+
+        public async Task<int> CountByUserIdAsync(int userId)
+        {
+            return await _dbSet.CountAsync(h => h.UserId == userId);
+        }
+
         public async Task<List<Habit>> GetByUserIdAsync(int userId)
         {
             return await _dbSet.Include(h => h.Rules).Where(h => h.UserId == userId).ToListAsync();

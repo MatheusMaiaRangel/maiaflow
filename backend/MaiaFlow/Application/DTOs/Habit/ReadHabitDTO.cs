@@ -7,8 +7,10 @@ namespace MaiaFlow.Application.DTOs.Habit
         string Title,
         string? Description,
         DateTime StartDate,
+        DateTime CurrentEffectiveFrom,
         HabitFrequencyType CurrentFrequencyType,
         int? CurrentIntervalDays,
-        WeekDays CurrentDaysOfWeek,
-        List<int> CurrentDaysOfMonth);
+        int CurrentDaysOfWeek,
+        List<int> CurrentDaysOfMonth,
+        bool CurrentLastDayOfMonth);
 }

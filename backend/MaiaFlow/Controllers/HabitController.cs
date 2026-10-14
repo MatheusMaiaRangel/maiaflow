@@ -1,98 +1,91 @@
-using System.Security.Claims;
 using MaiaFlow.Application;
 using MaiaFlow.Application.DTOs.Habit;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MaiaFlow.Controllers
 {
-    [Authorize]
-    [ApiController]
-    [Route("api/[controller]")]
-    public class HabitController(IHabitService _habitService) : ControllerBase
+    [Route("api/habits")]
+    public class HabitController(IHabitService habitService) : AuthenticatedControllerBase
     {
+        /// <summary>Creates a habit with its first recurrence rule, effective from <c>startDate</c>.</summary>
         [HttpPost]
-        [Route("/habits")]
-        public async Task<ActionResult> CreateHabit(CreateHabitDTO createHabitDto)
+        [ProducesResponseType<ReadHabitDTO>(StatusCodes.Status201Created)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ReadHabitDTO>> CreateHabit(CreateHabitDTO createHabitDto)
         {
-            var userId = GetUserId();
-            var response = await _habitService.CreateHabitAsync(userId, createHabitDto);
-            return Ok(response);
+            var response = await habitService.CreateHabitAsync(UserId, createHabitDto);
+            return CreatedAtAction(nameof(GetHabitById), new { id = response.Id }, response);
         }
 
         [HttpGet]
-        [Route("/habits")]
-        public async Task<ActionResult> GetHabits()
+        [ProducesResponseType<List<ReadHabitDTO>>(StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<ReadHabitDTO>>> GetHabits()
         {
-            var userId = GetUserId();
-            var response = await _habitService.GetHabitsByUserAsync(userId);
-            return Ok(response);
+            return Ok(await habitService.GetHabitsByUserAsync(UserId));
         }
 
-        [HttpGet("/habits/{id}")]
-        public async Task<ActionResult> GetHabitById(int id)
+        [HttpGet("{id:int}")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadHabitDTO>(StatusCodes.Status200OK)]
+        public async Task<ActionResult<ReadHabitDTO>> GetHabitById(int id)
         {
-            var userId = GetUserId();
-            try
-            {
-                var response = await _habitService.GetHabitByIdAsync(userId, id);
-                return Ok(response);
-            }
-            catch (Exception)
-            {
-                return NotFound();
-            }
+            return Ok(await habitService.GetHabitByIdAsync(UserId, id));
         }
 
-        [HttpPatch("/habits/{id}")]
-        public async Task<ActionResult> UpdateHabitDetails(int id, UpdateHabitDetailsDTO updateDto)
+        /// <summary>Edits title or description. Only the fields sent are changed.</summary>
+        [HttpPatch("{id:int}")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadHabitDTO>(StatusCodes.Status200OK)]
+        public async Task<ActionResult<ReadHabitDTO>> UpdateHabitDetails(int id, UpdateHabitDetailsDTO updateDto)
         {
-            var userId = GetUserId();
-            var response = await _habitService.UpdateHabitDetailsAsync(userId, id, updateDto);
-            if (response == null) return NotFound();
-            return Ok(response);
+            return Ok(await habitService.UpdateHabitDetailsAsync(UserId, id, updateDto));
         }
 
-        [HttpPatch("/habits/{id}/recurrence")]
-        public async Task<ActionResult> ChangeRecurrence(int id, ChangeRecurrenceDTO changeDto)
+        /// <summary>
+        /// Replaces the recurrence rule from <c>effectiveFrom</c> on; earlier days keep the old rule.
+        /// </summary>
+        [HttpPatch("{id:int}/recurrence")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadHabitDTO>(StatusCodes.Status200OK)]
+        public async Task<ActionResult<ReadHabitDTO>> ChangeRecurrence(int id, ChangeRecurrenceDTO changeDto)
         {
-            var userId = GetUserId();
-            var response = await _habitService.ChangeRecurrenceRuleAsync(userId, id, changeDto);
-            if (response == null) return NotFound();
-            return Ok(response);
+            return Ok(await habitService.ChangeRecurrenceRuleAsync(UserId, id, changeDto));
         }
 
-        [HttpDelete("/habits/{id}")]
-        public async Task<ActionResult> DeleteHabit(int id)
+        [HttpDelete("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteHabit(int id)
         {
-            var userId = GetUserId();
-            var deleted = await _habitService.DeleteHabitAsync(userId, id);
-            if (!deleted) return NotFound();
-            return Ok("Hábito deletado");
+            await habitService.DeleteHabitAsync(UserId, id);
+            return NoContent();
         }
 
-        [HttpGet]
-        [Route("/habits/calendar")]
-        public async Task<ActionResult> GetCalendar([FromQuery] DateTime start, [FromQuery] DateTime end)
+        /// <summary>
+        /// Habit occurrences between <c>start</c> and <c>end</c> (inclusive, at most 366 days).
+        /// Days up to today are stored occurrences with a real <c>id</c>. Days after today are
+        /// calculated on the fly and come with <c>id = 0</c>: they do not exist yet, so their
+        /// status cannot be updated until the day arrives.
+        /// </summary>
+        [HttpGet("calendar")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<List<ReadHabitOccurrenceDTO>>(StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<ReadHabitOccurrenceDTO>>> GetCalendar(
+            [FromQuery] DateTime start, [FromQuery] DateTime end)
         {
-            var userId = GetUserId();
-            var response = await _habitService.GetCalendarAsync(userId, start, end);
-            return Ok(response);
+            return Ok(await habitService.GetCalendarAsync(UserId, start, end));
         }
 
-        [HttpPatch("/habits/occurrences/{occurrenceId}/status")]
-        public async Task<ActionResult> UpdateOccurrenceStatus(int occurrenceId, UpdateOccurrenceStatusDTO statusDto)
+        /// <summary>Sets an occurrence to <c>Pending</c>, <c>Completed</c>, or <c>NotCompleted</c>.</summary>
+        [HttpPatch("occurrences/{occurrenceId:int}/status")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ReadHabitOccurrenceDTO>(StatusCodes.Status200OK)]
+        public async Task<ActionResult<ReadHabitOccurrenceDTO>> UpdateOccurrenceStatus(
+            int occurrenceId, UpdateOccurrenceStatusDTO statusDto)
         {
-            var userId = GetUserId();
-            var response = await _habitService.UpdateOccurrenceStatusAsync(userId, occurrenceId, statusDto);
-            if (response == null) return NotFound();
-            return Ok(response);
-        }
-
-        private int GetUserId()
-        {
-            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.Parse(idClaim!);
+            return Ok(await habitService.UpdateOccurrenceStatusAsync(UserId, occurrenceId, statusDto));
         }
     }
 }

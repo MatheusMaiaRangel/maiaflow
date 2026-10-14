@@ -1,5 +1,7 @@
 using MaiaFlow.Domain.Habit;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace MaiaFlow.Infrastructure
 {
@@ -39,11 +41,26 @@ namespace MaiaFlow.Infrastructure
             await _context.SaveChangesAsync();
         }
 
+        // Concurrent calendar requests may generate the same days. ON CONFLICT DO NOTHING (backed by the
+        // unique index on HabitId + Date) keeps the first insert and silently skips the duplicates.
         public async Task AddRangeAsync(List<HabitOccurrence> occurrences)
         {
-            if (occurrences.Count == 0) return;
-            await _dbSet.AddRangeAsync(occurrences);
-            await _context.SaveChangesAsync();
+            foreach (var group in occurrences.GroupBy(o => o.HabitId))
+            {
+                var habitId = group.Key;
+                var dates = group.Select(o => o.Date).Distinct().ToArray();
+                var pending = nameof(HabitOccurrenceStatus.Pending);
+                // timestamp[] must be declared explicitly: Npgsql would infer timestamptz and reject
+                // DateTime values with Kind=Unspecified (see AppDbContext).
+                await _context.Database.ExecuteSqlRawAsync("""
+                    INSERT INTO habit_occurrences ("HabitId", "Date", "Status")
+                    SELECT @habitId, d, @status FROM unnest(@dates) AS d
+                    ON CONFLICT ("HabitId", "Date") DO NOTHING
+                    """,
+                    new NpgsqlParameter("habitId", habitId),
+                    new NpgsqlParameter("status", pending),
+                    new NpgsqlParameter("dates", NpgsqlDbType.Array | NpgsqlDbType.Timestamp) { Value = dates });
+            }
         }
 
         public async Task UpdateAsync(HabitOccurrence occurrence)
