@@ -1,3 +1,5 @@
+using MaiaFlow.Domain.Exceptions;
+
 namespace MaiaFlow.Domain.Habit
 {
     public class HabitOccurrence
@@ -21,7 +23,7 @@ namespace MaiaFlow.Domain.Habit
         public static HabitOccurrence Create(int habitId, DateTime date)
         {
             if (habitId <= 0)
-                throw new ArgumentException("A ocorrência deve estar vinculada a um hábito válido.");
+                throw new DomainValidationException("A ocorrência deve estar vinculada a um hábito válido.");
 
             return new HabitOccurrence(habitId, date);
         }

@@ -8,6 +8,6 @@ namespace MaiaFlow.Application.DTOs.Habit
         DateTime StartDate,
         HabitFrequencyType FrequencyType,
         int? IntervalDays,
-        WeekDays DaysOfWeek,
+        int DaysOfWeek,
         List<int>? DaysOfMonth);
 }

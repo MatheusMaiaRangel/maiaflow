@@ -1,4 +1,3 @@
-
 using MaiaFlow.Application;
 using MaiaFlow.Application.DTOs.User;
 using Microsoft.AspNetCore.Authorization;
@@ -6,67 +5,56 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MaiaFlow.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UserController(IUserService _userService) : ControllerBase
+    [Route("api")]
+    public class UserController(IUserService userService) : AuthenticatedControllerBase
     {
-
+        /// <summary>Registers a new user.</summary>
         [AllowAnonymous]
-        [HttpPost]
-        [Route("/users")]
-        public async Task<ActionResult> CreateUser(CreateUserDTO createUserDto)
+        [HttpPost("users")]
+        [ProducesResponseType<ReadUserDTO>(StatusCodes.Status201Created)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<ReadUserDTO>> CreateUser(CreateUserDTO createUserDto)
         {
-            var response = await _userService.CreateUserAsync(createUserDto);
-
-            return Ok(response);
+            var response = await userService.CreateUserAsync(createUserDto);
+            return CreatedAtAction(nameof(GetMe), response);
         }
-        
+
+        /// <summary>Signs in and returns a JWT to send as <c>Authorization: Bearer</c>.</summary>
         [AllowAnonymous]
-        [HttpPost]
-        [Route("/auth/login")]
-        public async Task<ActionResult> Login(LoginUserDTO loginDto)
+        [HttpPost("auth/login")]
+        [ProducesResponseType<AuthResponseDTO>(StatusCodes.Status200OK)]
+        public async Task<ActionResult<AuthResponseDTO>> Login(LoginUserDTO loginDto)
         {
-            try
-            {
-                var response = await _userService.LoginAsync(loginDto);
-                return Ok(response);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized(new { message = "Email ou senha inválidos." });
-            }
+            return Ok(await userService.LoginAsync(loginDto));
         }
 
-        [Authorize]
-        [HttpGet]
-        [Route("/users/{id}")]
-        public async Task<ActionResult> GetUserById(int id)
+        /// <summary>The signed-in user's profile.</summary>
+        [HttpGet("users/me")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ReadUserDTO>> GetMe()
         {
-            var response = await _userService.GetUserByIdAsync(id);
-            return Ok(response);
+            return Ok(await userService.GetUserByIdAsync(UserId));
         }
-        
-        [Authorize]
-        [HttpPatch("/users/{id}")]
-        public async Task<ActionResult> UpdateUser(int id, UpdateUserDTO updateUserDto)
+
+        /// <summary>Edits name, e-mail, or password. Only the fields sent are changed.</summary>
+        [HttpPatch("users/me")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<ReadUserDTO>> UpdateMe(UpdateUserDTO updateUserDto)
         {
-            var response = await _userService.UpdateUserAsync(id, updateUserDto);
-            if (response == null)
-            {
-                return NotFound();
-            }
-            return Ok(response);
+            return Ok(await userService.UpdateUserAsync(UserId, updateUserDto));
         }
-        
-        [Authorize]
-        [HttpDelete("/users/{id}")]
-        public async Task<ActionResult> DeleteUser(int id)
+
+        /// <summary>Deletes the signed-in user and all their tasks and habits.</summary>
+        [HttpDelete("users/me")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteMe()
         {
-            var deleted = await _userService.DeleteUserAsync(id);
-            if (!deleted){
-                return NotFound();
-            }
-            return Ok("Usuário deletado");
+            await userService.DeleteUserAsync(UserId);
+            return NoContent();
         }
     }
 }

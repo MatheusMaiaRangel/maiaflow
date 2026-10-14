@@ -1,4 +1,6 @@
+using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 using MaiaFlow.Application;
 using MaiaFlow.Domain.User;
 using MaiaFlow.Domain.TaskItem;
@@ -32,6 +34,8 @@ namespace MaiaFlow
                     In = ParameterLocation.Header,
                     Description = "Informe apenas o token JWT."
                 });
+                options.IncludeXmlComments(
+                    Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
                 options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
                 {
                     [new OpenApiSecuritySchemeReference("Bearer")] = new List<string>()
@@ -66,7 +70,18 @@ namespace MaiaFlow
                     };
                 });
             builder.Services.AddAuthorization();
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                    // Enums travel as strings ("Completed"). WeekDays is exposed as an int bit mask in the DTOs.
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+            builder.Services.AddProblemDetails();
+            builder.Services.AddExceptionHandler<ApiExceptionHandler>();
+            var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+            builder.Services.AddCors(options =>
+                options.AddPolicy(CorsPolicyName, policy => policy
+                    .WithOrigins(corsOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()));
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
@@ -77,6 +92,8 @@ namespace MaiaFlow
             builder.Services.AddScoped<IHabitService, HabitService>();
             var app = builder.Build();
             // Configure the HTTP request pipeline.
+            app.UseExceptionHandler();
+            app.UseStatusCodePages();
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -84,6 +101,7 @@ namespace MaiaFlow
             }
             app.UseHttpsRedirection();
             
+            app.UseCors(CorsPolicyName);
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
@@ -91,6 +109,7 @@ namespace MaiaFlow
         }
 
         private const int MinJwtKeyLength = 32;
+        private const string CorsPolicyName = "Frontend";
 
         // Secrets are not committed (see docs/ROADMAP.md, D7): fail fast with a clear message
         // instead of a NullReferenceException deep inside the framework.

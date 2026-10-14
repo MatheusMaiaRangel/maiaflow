@@ -1,5 +1,6 @@
 using MaiaFlow.Application;
 using MaiaFlow.Application.DTOs.Habit;
+using MaiaFlow.Domain.Exceptions;
 using MaiaFlow.Domain.Habit;
 
 namespace MaiaFlow.Infrastructure
@@ -16,7 +17,7 @@ namespace MaiaFlow.Infrastructure
                 userId,
                 createHabitDto.FrequencyType,
                 createHabitDto.IntervalDays,
-                createHabitDto.DaysOfWeek,
+                (WeekDays)createHabitDto.DaysOfWeek,
                 createHabitDto.DaysOfMonth);
 
             await habitRepository.AddAsync(habit);
@@ -36,10 +37,9 @@ namespace MaiaFlow.Infrastructure
             return habits.Select(ToDto).ToList();
         }
 
-        public async Task<ReadHabitDTO?> UpdateHabitDetailsAsync(int userId, int habitId, UpdateHabitDetailsDTO updateDto)
+        public async Task<ReadHabitDTO> UpdateHabitDetailsAsync(int userId, int habitId, UpdateHabitDetailsDTO updateDto)
         {
-            var habit = await habitRepository.GetByIdAsync(habitId);
-            if (habit == null || habit.UserId != userId) return null;
+            var habit = await GetOwnedHabitAsync(userId, habitId);
 
             habit.UpdateDetails(updateDto.Title ?? habit.Title, updateDto.Description ?? habit.Description);
 
@@ -47,17 +47,16 @@ namespace MaiaFlow.Infrastructure
             return ToDto(habit);
         }
 
-        public async Task<ReadHabitDTO?> ChangeRecurrenceRuleAsync(int userId, int habitId, ChangeRecurrenceDTO changeDto)
+        public async Task<ReadHabitDTO> ChangeRecurrenceRuleAsync(int userId, int habitId, ChangeRecurrenceDTO changeDto)
         {
-            var habit = await habitRepository.GetByIdAsync(habitId);
-            if (habit == null || habit.UserId != userId) return null;
+            var habit = await GetOwnedHabitAsync(userId, habitId);
 
             var effectiveFrom = changeDto.EffectiveFrom ?? DateTime.UtcNow.Date;
 
             habit.ChangeRecurrenceRule(
                 changeDto.FrequencyType,
                 changeDto.IntervalDays,
-                changeDto.DaysOfWeek,
+                (WeekDays)changeDto.DaysOfWeek,
                 changeDto.DaysOfMonth,
                 effectiveFrom);
 
@@ -65,13 +64,10 @@ namespace MaiaFlow.Infrastructure
             return ToDto(habit);
         }
 
-        public async Task<bool> DeleteHabitAsync(int userId, int habitId)
+        public async Task DeleteHabitAsync(int userId, int habitId)
         {
-            var habit = await habitRepository.GetByIdAsync(habitId);
-            if (habit == null || habit.UserId != userId) return false;
-
+            var habit = await GetOwnedHabitAsync(userId, habitId);
             await habitRepository.DeleteAsync(habit);
-            return true;
         }
 
         public async Task<List<ReadHabitOccurrenceDTO>> GetCalendarAsync(int userId, DateTime start, DateTime end)
@@ -115,13 +111,13 @@ namespace MaiaFlow.Infrastructure
             return result.OrderBy(o => o.Date).ToList();
         }
 
-        public async Task<ReadHabitOccurrenceDTO?> UpdateOccurrenceStatusAsync(int userId, int occurrenceId, UpdateOccurrenceStatusDTO statusDto)
+        public async Task<ReadHabitOccurrenceDTO> UpdateOccurrenceStatusAsync(int userId, int occurrenceId, UpdateOccurrenceStatusDTO statusDto)
         {
             var occurrence = await occurrenceRepository.GetByIdAsync(occurrenceId);
-            if (occurrence == null) return null;
+            if (occurrence == null) throw new NotFoundException("Ocorrência não encontrada.");
 
             var habit = await habitRepository.GetByIdAsync(occurrence.HabitId);
-            if (habit == null || habit.UserId != userId) return null;
+            if (habit == null || habit.UserId != userId) throw new NotFoundException("Ocorrência não encontrada.");
 
             if (statusDto.Status == HabitOccurrenceStatus.Completed)
                 occurrence.MarkAsCompleted();
@@ -162,7 +158,7 @@ namespace MaiaFlow.Infrastructure
                 habit.StartDate,
                 rule?.FrequencyType ?? default,
                 rule?.IntervalDays,
-                rule?.DaysOfWeek ?? WeekDays.None,
+                (int)(rule?.DaysOfWeek ?? WeekDays.None),
                 rule?.DaysOfMonth ?? new List<int>());
         }
 
@@ -172,12 +168,12 @@ namespace MaiaFlow.Infrastructure
         }
 
         private async Task<Habit> GetOwnedHabitAsync(int userId, int habitId)
-{
-        var habit = await habitRepository.GetByIdAsync(habitId);
+        {
+            var habit = await habitRepository.GetByIdAsync(habitId);
             if (habit == null || habit.UserId != userId)
-                throw new Exception("Hábito não encontrado");
+                throw new NotFoundException("Hábito não encontrado.");
 
-    return habit;
-}
+            return habit;
+        }
     }
 }

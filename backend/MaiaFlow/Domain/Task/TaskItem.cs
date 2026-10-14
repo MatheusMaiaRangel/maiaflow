@@ -1,3 +1,5 @@
+using MaiaFlow.Domain.Exceptions;
+
 namespace MaiaFlow.Domain.TaskItem
 {
     public class TaskItem
@@ -27,13 +29,13 @@ namespace MaiaFlow.Domain.TaskItem
         public static TaskItem Create(string title, string? description, DateTime? dueDate, int userId)
         {
             if (string.IsNullOrEmpty(title))
-                throw new ArgumentException("O título da tarefa é obrigatório.");
+                throw new DomainValidationException("O título da tarefa é obrigatório.");
 
             if (title.Length < 1)
-                throw new ArgumentException("O título da tarefa deve conter pelo menos 1 caracter.");
+                throw new DomainValidationException("O título da tarefa deve conter pelo menos 1 caracter.");
 
             if (userId <= 0)
-                throw new ArgumentException("A tarefa deve estar vinculada a um usuário válido.");
+                throw new DomainValidationException("A tarefa deve estar vinculada a um usuário válido.");
 
             return new TaskItem(title, description, dueDate, userId);
         }
@@ -41,10 +43,10 @@ namespace MaiaFlow.Domain.TaskItem
         public TaskItem Update(string title, string? description, DateTime? dueDate)
         {
             if (string.IsNullOrEmpty(title))
-                throw new ArgumentException("O título da tarefa é obrigatório.");
+                throw new DomainValidationException("O título da tarefa é obrigatório.");
 
             if (title.Length < 3)
-                throw new ArgumentException("O título da tarefa deve conter pelo menos 3 caracteres.");
+                throw new DomainValidationException("O título da tarefa deve conter pelo menos 3 caracteres.");
 
             Title = title;
             Description = description;

@@ -1,3 +1,5 @@
+using MaiaFlow.Domain.Exceptions;
+
 namespace MaiaFlow.Domain.Habit
 {
     public class Habit
@@ -28,13 +30,13 @@ namespace MaiaFlow.Domain.Habit
             HabitFrequencyType frequencyType, int? intervalDays, WeekDays daysOfWeek, List<int>? daysOfMonth)
         {
             if (string.IsNullOrEmpty(title))
-                throw new ArgumentException("O título do hábito é obrigatório.");
+                throw new DomainValidationException("O título do hábito é obrigatório.");
 
             if (title.Length < 3)
-                throw new ArgumentException("O título do hábito deve conter pelo menos 3 caracteres.");
+                throw new DomainValidationException("O título do hábito deve conter pelo menos 3 caracteres.");
 
             if (userId <= 0)
-                throw new ArgumentException("O hábito deve estar vinculado a um usuário válido.");
+                throw new DomainValidationException("O hábito deve estar vinculado a um usuário válido.");
 
             var habit = new Habit(title, description, startDate, userId);
             var rule = HabitRecurrenceRule.Create(habit.Id, frequencyType, intervalDays, daysOfWeek,
@@ -47,10 +49,10 @@ namespace MaiaFlow.Domain.Habit
         public Habit UpdateDetails(string title, string? description)
         {
             if (string.IsNullOrEmpty(title))
-                throw new ArgumentException("O título do hábito é obrigatório.");
+                throw new DomainValidationException("O título do hábito é obrigatório.");
 
             if (title.Length < 3)
-                throw new ArgumentException("O título do hábito deve conter pelo menos 3 caracteres.");
+                throw new DomainValidationException("O título do hábito deve conter pelo menos 3 caracteres.");
 
             Title = title;
             Description = description;

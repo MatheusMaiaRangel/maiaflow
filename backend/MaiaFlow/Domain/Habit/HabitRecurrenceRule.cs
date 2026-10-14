@@ -1,3 +1,5 @@
+using MaiaFlow.Domain.Exceptions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +8,8 @@ namespace MaiaFlow.Domain.Habit
 {
     public class HabitRecurrenceRule
     {
+        private const WeekDays AllWeekDays = (WeekDays)127;
+
         public int Id { get; }
         public int HabitId { get; private set; }
         public HabitFrequencyType FrequencyType { get; private set; }
@@ -76,18 +80,21 @@ namespace MaiaFlow.Domain.Habit
             WeekDays daysOfWeek, List<int> daysOfMonth)
         {
             if (frequencyType == HabitFrequencyType.IntervalDays && (intervalDays == null || intervalDays <= 0))
-                throw new ArgumentException("O intervalo em dias deve ser maior que zero.");
+                throw new DomainValidationException("O intervalo em dias deve ser maior que zero.");
+
+            if ((daysOfWeek & ~AllWeekDays) != 0)
+                throw new DomainValidationException("Os dias da semana informados são inválidos.");
 
             if (frequencyType == HabitFrequencyType.SpecificDaysOfWeek && daysOfWeek == WeekDays.None)
-                throw new ArgumentException("Selecione pelo menos um dia da semana para o hábito.");
+                throw new DomainValidationException("Selecione pelo menos um dia da semana para o hábito.");
 
             if (frequencyType == HabitFrequencyType.Monthly)
             {
                 if (daysOfMonth.Count == 0)
-                    throw new ArgumentException("Selecione pelo menos um dia do mês para o hábito.");
+                    throw new DomainValidationException("Selecione pelo menos um dia do mês para o hábito.");
 
                 if (daysOfMonth.Any(d => d < 1 || d > 31))
-                    throw new ArgumentException("Os dias do mês devem estar entre 1 e 31.");
+                    throw new DomainValidationException("Os dias do mês devem estar entre 1 e 31.");
             }
         }
     }

@@ -1,5 +1,6 @@
 using MaiaFlow.Application;
 using MaiaFlow.Application.DTOs.TaskItem;
+using MaiaFlow.Domain.Exceptions;
 using MaiaFlow.Domain.TaskItem;
 
 namespace MaiaFlow.Infrastructure
@@ -27,10 +28,9 @@ namespace MaiaFlow.Infrastructure
             return tasks.Select(ToDto).ToList();
         }
 
-        public async Task<ReadTaskDTO?> UpdateTaskAsync(int userId, int taskId, UpdateTaskDTO updateTaskDto)
+        public async Task<ReadTaskDTO> UpdateTaskAsync(int userId, int taskId, UpdateTaskDTO updateTaskDto)
         {
-            var task = await repository.GetByIdAsync(taskId);
-            if (task == null || task.UserId != userId) return null;
+            var task = await GetOwnedTaskAsync(userId, taskId);
 
             var title = updateTaskDto.Title ?? task.Title;
             var description = updateTaskDto.Description ?? task.Description;
@@ -43,10 +43,9 @@ namespace MaiaFlow.Infrastructure
             return ToDto(task);
         }
 
-        public async Task<ReadTaskDTO?> UpdateTaskStatusAsync(int userId, int taskId, UpdateTaskStatusDTO updateStatusDto)
+        public async Task<ReadTaskDTO> UpdateTaskStatusAsync(int userId, int taskId, UpdateTaskStatusDTO updateStatusDto)
         {
-            var task = await repository.GetByIdAsync(taskId);
-            if (task == null || task.UserId != userId) return null;
+            var task = await GetOwnedTaskAsync(userId, taskId);
 
             switch (updateStatusDto.Status)
             {
@@ -66,20 +65,17 @@ namespace MaiaFlow.Infrastructure
             return ToDto(task);
         }
 
-        public async Task<bool> DeleteTaskAsync(int userId, int taskId)
+        public async Task DeleteTaskAsync(int userId, int taskId)
         {
-            var task = await repository.GetByIdAsync(taskId);
-            if (task == null || task.UserId != userId) return false;
-
+            var task = await GetOwnedTaskAsync(userId, taskId);
             await repository.DeleteAsync(task);
-            return true;
         }
 
         private async Task<TaskItem> GetOwnedTaskAsync(int userId, int taskId)
         {
             var task = await repository.GetByIdAsync(taskId);
             if (task == null || task.UserId != userId)
-                throw new Exception("Tarefa não encontrada");
+                throw new NotFoundException("Tarefa não encontrada.");
 
             return task;
         }

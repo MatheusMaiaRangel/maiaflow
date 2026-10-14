@@ -1,5 +1,6 @@
 using MaiaFlow.Application;
 using MaiaFlow.Application.DTOs.User;
+using MaiaFlow.Domain.Exceptions;
 using MaiaFlow.Domain.User;
 
 namespace MaiaFlow.Infrastructure
@@ -11,7 +12,7 @@ namespace MaiaFlow.Infrastructure
             
             var existingUser = await repository.GetByEmailAsync(createUserDto.Email);
             if (existingUser != null)
-                throw new InvalidOperationException("E-mail já cadastrado.");
+                throw new ConflictException("E-mail já cadastrado.");
             
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
             
@@ -27,17 +28,17 @@ namespace MaiaFlow.Infrastructure
         public async Task<ReadUserDTO> GetUserByIdAsync(int id)
         {
             var user = await repository.GetByIdAsync(id);
-            if (user == null) throw new Exception("Usuário não encontrado");
+            if (user == null) throw new NotFoundException("Usuário não encontrado.");
             
             var userDto = new ReadUserDTO(user.Name, user.Email);
             return userDto;
         }
 
-        public async Task<ReadUserDTO?> UpdateUserAsync(int id, UpdateUserDTO updateUserDto)
+        public async Task<ReadUserDTO> UpdateUserAsync(int id, UpdateUserDTO updateUserDto)
         {
             // search for an existent user
             var user = await repository.GetByIdAsync(id);
-            if (user == null) return null;
+            if (user == null) throw new NotFoundException("Usuário não encontrado.");
             
             var name = updateUserDto.Name ?? user.Name;
             var email = updateUserDto.Email ?? user.Email;
@@ -66,13 +67,12 @@ namespace MaiaFlow.Infrastructure
             return new AuthResponseDTO(token);
         }
 
-        public async Task<bool> DeleteUserAsync(int id)
+        public async Task DeleteUserAsync(int id)
         {
             var user = await repository.GetByIdAsync(id);
-            if (user == null) return false;
+            if (user == null) throw new NotFoundException("Usuário não encontrado.");
 
             await repository.DeleteAsync(user);
-            return true;
         }
     }
 }

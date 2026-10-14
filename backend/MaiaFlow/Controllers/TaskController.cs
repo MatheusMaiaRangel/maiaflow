@@ -1,89 +1,59 @@
-using System.Security.Claims;
 using MaiaFlow.Application;
 using MaiaFlow.Application.DTOs.TaskItem;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MaiaFlow.Controllers
 {
-    [Authorize]
-    [ApiController]
-    [Route("api/[controller]")]
-    public class TaskController(ITaskService _taskService) : ControllerBase
+    [Route("api/tasks")]
+    public class TaskController(ITaskService taskService) : AuthenticatedControllerBase
     {
+        /// <summary>Creates a task for the signed-in user. It starts as <c>Pending</c>.</summary>
         [HttpPost]
-        [Route("/tasks")]
-        public async Task<ActionResult> CreateTask(CreateTaskDTO createTaskDto)
+        [ProducesResponseType<ReadTaskDTO>(StatusCodes.Status201Created)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ReadTaskDTO>> CreateTask(CreateTaskDTO createTaskDto)
         {
-            var userId = GetUserId();
-            var response = await _taskService.CreateTaskAsync(userId, createTaskDto);
-            return Ok(response);
+            var response = await taskService.CreateTaskAsync(UserId, createTaskDto);
+            return CreatedAtAction(nameof(GetTaskById), new { id = response.Id }, response);
         }
 
+        /// <summary>Lists the signed-in user's tasks.</summary>
         [HttpGet]
-        [Route("/tasks")]
-        public async Task<ActionResult> GetTasks()
+        public async Task<ActionResult<List<ReadTaskDTO>>> GetTasks()
         {
-            var userId = GetUserId();
-            var response = await _taskService.GetTasksByUserAsync(userId);
-            return Ok(response);
+            return Ok(await taskService.GetTasksByUserAsync(UserId));
         }
 
-        [HttpGet("/tasks/{id}")]
-        public async Task<ActionResult> GetTaskById(int id)
+        [HttpGet("{id:int}")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ReadTaskDTO>> GetTaskById(int id)
         {
-            var userId = GetUserId();
-            try
-            {
-                var response = await _taskService.GetTaskByIdAsync(userId, id);
-                return Ok(response);
-            }
-            catch (Exception)
-            {
-                return NotFound();
-            }
+            return Ok(await taskService.GetTaskByIdAsync(UserId, id));
         }
 
-        [HttpPatch("/tasks/{id}")]
-        public async Task<ActionResult> UpdateTask(int id, UpdateTaskDTO updateTaskDto)
+        /// <summary>Edits title, description, or due date. Only the fields sent are changed.</summary>
+        [HttpPatch("{id:int}")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ReadTaskDTO>> UpdateTask(int id, UpdateTaskDTO updateTaskDto)
         {
-            var userId = GetUserId();
-            var response = await _taskService.UpdateTaskAsync(userId, id, updateTaskDto);
-            if (response == null)
-            {
-                return NotFound();
-            }
-            return Ok(response);
+            return Ok(await taskService.UpdateTaskAsync(UserId, id, updateTaskDto));
         }
 
-        [HttpPatch("/tasks/{id}/status")]
-        public async Task<ActionResult> UpdateTaskStatus(int id, UpdateTaskStatusDTO updateStatusDto)
+        [HttpPatch("{id:int}/status")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ReadTaskDTO>> UpdateTaskStatus(int id, UpdateTaskStatusDTO updateStatusDto)
         {
-            var userId = GetUserId();
-            var response = await _taskService.UpdateTaskStatusAsync(userId, id, updateStatusDto);
-            if (response == null)
-            {
-                return NotFound();
-            }
-            return Ok(response);
+            return Ok(await taskService.UpdateTaskStatusAsync(UserId, id, updateStatusDto));
         }
 
-        [HttpDelete("/tasks/{id}")]
-        public async Task<ActionResult> DeleteTask(int id)
+        [HttpDelete("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteTask(int id)
         {
-            var userId = GetUserId();
-            var deleted = await _taskService.DeleteTaskAsync(userId, id);
-            if (!deleted)
-            {
-                return NotFound();
-            }
-            return Ok("Tarefa deletada");
-        }
-
-        private int GetUserId()
-        {
-            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.Parse(idClaim!);
+            await taskService.DeleteTaskAsync(UserId, id);
+            return NoContent();
         }
     }
 }
