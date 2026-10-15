@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { CalendarDaysIcon } from "lucide-react";
-import { EmptyState } from "@/components/empty-state";
+import { HabitCalendar } from "@/components/calendar/habit-calendar";
 import { PageHeader } from "@/components/page-header";
+import { fetchCalendarSeed } from "@/lib/calendar/server";
+import { todayInBrasilia } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "Calendário" };
 
-export default function Page() {
+export default async function Page() {
+  const today = todayInBrasilia();
+  const seed = await fetchCalendarSeed(today);
+
   return (
     <>
       <PageHeader title="Calendário" description="Seus hábitos dia a dia." />
-      <EmptyState
-        icon={CalendarDaysIcon}
-        title="Calendário vazio"
-        description="Em breve você verá e marcará seus hábitos por dia."
-      />
+      <HabitCalendar today={today} seed={seed} />
     </>
   );
 }
