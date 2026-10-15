@@ -22,6 +22,9 @@ describe("checkBffRequest", () => {
 
   it("blocks the auth routes so the token never reaches the browser", () => {
     expect(checkBffRequest({ ...base, path: ["auth", "login"] })?.status).toBe(404);
+    // The API's routing ignores case, so "Auth" must not slip through.
+    expect(checkBffRequest({ ...base, path: ["Auth", "login"] })?.status).toBe(404);
+    expect(checkBffRequest({ ...base, path: ["AUTH", "login"] })?.status).toBe(404);
     expect(checkBffRequest({ ...base, path: [] })?.status).toBe(404);
   });
 

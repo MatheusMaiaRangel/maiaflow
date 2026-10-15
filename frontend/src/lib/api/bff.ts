@@ -22,7 +22,8 @@ export function checkBffRequest(input: {
   const { method, path, origin, expectedOrigin, contentLength, token } = input;
 
   // Sign-in and sign-up go through Server Actions: the token must never be returned to the browser.
-  if (path.length === 0 || path[0] === "auth") return { status: 404, message: "Não encontrado." };
+  if (path.length === 0 || path[0].toLowerCase() === "auth")
+    return { status: 404, message: "Não encontrado." };
   if (path.some((segment) => segment === "." || segment === ".." || /[/\\]/.test(segment))) {
     return { status: 400, message: "Requisição inválida." };
   }
