@@ -14,7 +14,7 @@ file first, then the handoff of the last finished phase in [`docs/handoffs/`](ha
 | 0 | Environment and foundation | Done | [phase-0](handoffs/phase-0.md) |
 | 1 | Backend: API contract and fixes | Done | [phase-1](handoffs/phase-1.md) |
 | 2 | Frontend foundation (Next.js) | Done | [phase-2](handoffs/phase-2.md) |
-| 3 | Frontend features | Not started | — |
+| 3 | Frontend features | Done | [phase-3](handoffs/phase-3.md) |
 | 4 | Quality and delivery | Not started | — |
 
 Update this table when a phase starts (`In progress`) and when it ends (`Done`, with a link to its
