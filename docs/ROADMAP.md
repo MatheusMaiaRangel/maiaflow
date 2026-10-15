@@ -16,6 +16,7 @@ file first, then the handoff of the last finished phase in [`docs/handoffs/`](ha
 | 2 | Frontend foundation (Next.js) | Done | [phase-2](handoffs/phase-2.md) |
 | 3 | Frontend features | Done | [phase-3](handoffs/phase-3.md) |
 | 4 | Quality and delivery | Not started | — |
+| 5 | Home screen: calendar and dashboards | Not started | — |
 
 Update this table when a phase starts (`In progress`) and when it ends (`Done`, with a link to its
 handoff).
@@ -195,6 +196,20 @@ Done when: every flow works end to end against the real API, and lint, typecheck
 
 Done when: CI is green, `docker compose up` brings up the whole app, and the final handoff is
 written.
+
+### Phase 5 — Home screen: calendar and dashboards
+
+**Goal:** the Today screen (`/`) stops looking empty on wide screens and gives an overview of the user's
+progress. Idea from the owner (2026-10-14); the layout is not settled, ask before building.
+
+- [ ] Month calendar on the right (about half of the width), navigable month by month, reusing
+      `HabitCalendar` and `src/lib/calendar/*`. On phones it moves to the top or below the lists.
+- [ ] Dashboards in the lower part ("maybe", the owner is not sure yet). Start with what the screen
+      already loads: progress of the day, overdue tasks, habit streaks.
+- [ ] History charts (last 30 days, completion rate per habit) need a **new API endpoint**: decide its
+      contract with the owner before starting (it adds a decision to the table above).
+
+Done when: the owner approves the new layout, and lint, typecheck, tests, and build pass.
 
 ## Known issues found during the initial review
 
