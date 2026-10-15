@@ -1,19 +1,10 @@
 import type { Metadata } from "next";
-import { HouseIcon } from "lucide-react";
-import { EmptyState } from "@/components/empty-state";
-import { PageHeader } from "@/components/page-header";
+import { TodayView } from "@/components/today/today-view";
+import { fetchTodaySeed } from "@/lib/today-server";
 
 export const metadata: Metadata = { title: "Hoje" };
 
-export default function Page() {
-  return (
-    <>
-      <PageHeader title="Hoje" description="Seu dia em um só lugar." />
-      <EmptyState
-        icon={HouseIcon}
-        title="Nada por aqui ainda"
-        description="Suas tarefas e hábitos de hoje vão aparecer aqui."
-      />
-    </>
-  );
+export default async function Page() {
+  const { today, tasks, occurrences } = await fetchTodaySeed();
+  return <TodayView today={today} tasksSeed={tasks} occurrencesSeed={occurrences} />;
 }
