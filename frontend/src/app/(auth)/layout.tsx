@@ -1,5 +1,6 @@
 import { WavesIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { ClearQueryCache } from "@/components/auth/clear-query-cache";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -9,6 +10,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         MaiaFlow
       </div>
       <div className="w-full max-w-sm">{children}</div>
+      <ClearQueryCache />
     </main>
   );
 }
