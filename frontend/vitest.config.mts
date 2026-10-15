@@ -22,6 +22,7 @@ export default defineConfig({
         "src/lib/api/schema.d.ts",
         "src/components/ui/**", // shadcn/ui, generated
         "src/test/**",
+        "src/components/**/test-utils.tsx",
         "**/*.test.{ts,tsx}",
         // Declarative framework glue (layouts, pages, boundaries): covered by the Playwright E2E in phase 4.
         "src/app/**/{layout,page,loading,error,global-error,not-found}.tsx",
