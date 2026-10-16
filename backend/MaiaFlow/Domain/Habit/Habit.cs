@@ -7,6 +7,8 @@ namespace MaiaFlow.Domain.Habit
         public const int MinTitleLength = 3;
         public const int MaxTitleLength = 150;
         public const int MaxDescriptionLength = 500;
+        /// <summary>Upper bound on recurrence rules (history included), so the calendar stays cheap to compute.</summary>
+        public const int MaxRules = 100;
 
         public int Id { get; }
         public string Title { get; private set; }
@@ -18,8 +20,10 @@ namespace MaiaFlow.Domain.Habit
         private readonly List<HabitRecurrenceRule> _rules = new();
         public IReadOnlyCollection<HabitRecurrenceRule> Rules => _rules.AsReadOnly();
 
+        // For EF Core, which sets the properties after construction.
         private Habit()
         {
+            Title = null!;
         }
 
         private Habit(string title, string? description, DateTime startDate, int userId)
@@ -89,6 +93,10 @@ namespace MaiaFlow.Domain.Habit
             if (currentRule != null && from < currentRule.EffectiveFrom)
                 throw new DomainValidationException(
                     "A nova recorrência não pode começar antes da recorrência atual.");
+
+            if (_rules.Count >= MaxRules)
+                throw new DomainValidationException(
+                    $"Este hábito já teve {MaxRules} mudanças de recorrência; crie um novo hábito.");
 
             // Validate the new rule before touching the current one.
             var newRule = HabitRecurrenceRule.Create(Id, frequencyType, intervalDays, daysOfWeek,

@@ -40,14 +40,17 @@ namespace MaiaFlow.Infrastructure
             return await _dbSet.CountAsync(h => h.UserId == userId);
         }
 
+        // Read-only (lists and calendar): untracked, in creation order so the UI does not reshuffle.
         public async Task<List<Habit>> GetByUserIdAsync(int userId)
         {
-            return await _dbSet.Include(h => h.Rules).Where(h => h.UserId == userId).ToListAsync();
+            return await _dbSet.AsNoTracking().Include(h => h.Rules)
+                .Where(h => h.UserId == userId).OrderBy(h => h.Id).ToListAsync();
         }
 
+        // The habit comes tracked from GetByIdAsync, so only the columns that really changed are written.
+        // DbSet.Update would mark every column modified and could write back a stale occurrence cursor.
         public async Task UpdateAsync(Habit habit)
         {
-            _dbSet.Update(habit);
             await _context.SaveChangesAsync();
         }
 

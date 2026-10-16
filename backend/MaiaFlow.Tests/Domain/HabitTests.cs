@@ -90,6 +90,20 @@ namespace MaiaFlow.Tests.Domain
         }
 
         [Fact]
+        public void A_habit_keeps_at_most_MaxRules_recurrence_rules()
+        {
+            var habit = DailyHabit();
+            for (var i = 1; i < Habit.MaxRules; i++)
+                habit.ChangeRecurrenceRule(HabitFrequencyType.Daily, null, WeekDays.None, null, Start.AddDays(i));
+
+            var error = Assert.Throws<DomainValidationException>(() => habit.ChangeRecurrenceRule(
+                HabitFrequencyType.Weekly, null, WeekDays.None, null, Start.AddDays(Habit.MaxRules)));
+
+            Assert.Equal(Habit.MaxRules, habit.Rules.Count);
+            Assert.Contains(Habit.MaxRules.ToString(), error.Message);
+        }
+
+        [Fact]
         public void The_recurrence_cannot_start_before_the_current_rule()
         {
             var habit = DailyHabit();

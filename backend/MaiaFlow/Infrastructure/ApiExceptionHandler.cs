@@ -43,6 +43,9 @@ namespace MaiaFlow.Infrastructure
             NotFoundException => (StatusCodes.Status404NotFound, exception.Message),
             ConflictException => (StatusCodes.Status409Conflict, exception.Message),
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, exception.Message),
+            // Kestrel uses 413 when the body is over MaxRequestBodySize.
+            BadHttpRequestException { StatusCode: StatusCodes.Status413PayloadTooLarge }
+                => (StatusCodes.Status413PayloadTooLarge, "Requisição muito grande."),
             BadHttpRequestException => (StatusCodes.Status400BadRequest, "Requisição inválida."),
             DbUpdateException { InnerException: PostgresException { SqlState: UniqueViolationSqlState } }
                 => (StatusCodes.Status409Conflict, DuplicateMessage),

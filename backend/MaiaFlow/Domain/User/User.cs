@@ -17,9 +17,12 @@ namespace MaiaFlow.Domain.User
 		public string Password { get; private set; }
 
 		// Constructors
+		// For EF Core, which sets the properties after construction.
 		private User()
 		{
-
+			Name = null!;
+			Email = null!;
+			Password = null!;
 		}
 
 		private User(string name, string email, string password)

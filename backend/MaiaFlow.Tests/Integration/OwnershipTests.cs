@@ -37,6 +37,27 @@ namespace MaiaFlow.Tests.Integration
         }
 
         [Fact]
+        public async Task Habit_lists_contain_only_the_callers_habits_in_creation_order_with_the_current_rule()
+        {
+            var first = await SignedInClientAsync(fixture);
+            var second = await SignedInClientAsync(fixture);
+            var created = await (await first.PostJsonAsync("/api/habits", DailyHabit("Correr"))).ReadJsonAsync();
+            await first.PostJsonAsync("/api/habits", DailyHabit("Ler"));
+            await second.PostJsonAsync("/api/habits", DailyHabit("Da segunda"));
+            var changeFrom = BrazilTime.Today.AddDays(3).ToString("yyyy-MM-dd");
+            await first.PatchJsonAsync($"/api/habits/{created.GetProperty("id").GetInt32()}/recurrence",
+                $$"""{"frequencyType":"IntervalDays","intervalDays":2,"effectiveFrom":"{{changeFrom}}"}""");
+
+            var firstList = await (await first.GetAsync("/api/habits")).ReadJsonAsync();
+            var secondList = await (await second.GetAsync("/api/habits")).ReadJsonAsync();
+
+            Assert.Equal(["Correr", "Ler"], firstList.EnumerateArray().Select(h => h.GetProperty("title").GetString()));
+            Assert.Equal("IntervalDays", firstList[0].GetProperty("currentFrequencyType").GetString());
+            Assert.Equal(2, firstList[0].GetProperty("currentIntervalDays").GetInt32());
+            Assert.Equal(["Da segunda"], secondList.EnumerateArray().Select(h => h.GetProperty("title").GetString()));
+        }
+
+        [Fact]
         public async Task A_user_cannot_read_update_or_delete_another_users_habit()
         {
             var owner = await SignedInClientAsync(fixture);

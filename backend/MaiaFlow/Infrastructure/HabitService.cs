@@ -135,7 +135,7 @@ namespace MaiaFlow.Infrastructure
                 }
             }
 
-            return result.OrderBy(o => o.Date).ToList();
+            return result.OrderBy(o => o.Date).ThenBy(o => o.HabitId).ToList();
         }
 
         public async Task<ReadHabitOccurrenceDTO> UpdateOccurrenceStatusAsync(int userId, int occurrenceId, UpdateOccurrenceStatusDTO statusDto)

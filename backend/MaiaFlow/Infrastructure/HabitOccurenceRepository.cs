@@ -21,24 +21,14 @@ namespace MaiaFlow.Infrastructure
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task<HabitOccurrence?> GetByHabitIdAndDateAsync(int habitId, DateTime date)
-        {
-            return await _dbSet.FirstOrDefaultAsync(o => o.HabitId == habitId && o.Date == date.Date);
-        }
-
         public async Task<List<HabitOccurrence>> GetByUserIdAndDateRangeAsync(int userId, DateTime start, DateTime end)
         {
-            return await _dbSet
+            return await _dbSet.AsNoTracking()
                 .Join(_context.Set<Habit>(), o => o.HabitId, h => h.Id, (o, h) => new { Occurrence = o, h.UserId })
                 .Where(x => x.UserId == userId && x.Occurrence.Date >= start.Date && x.Occurrence.Date <= end.Date)
                 .Select(x => x.Occurrence)
+                .OrderBy(o => o.Date).ThenBy(o => o.HabitId)
                 .ToListAsync();
-        }
-
-        public async Task AddAsync(HabitOccurrence occurrence)
-        {
-            await _dbSet.AddAsync(occurrence);
-            await _context.SaveChangesAsync();
         }
 
         // Concurrent calendar requests may generate the same days. ON CONFLICT DO NOTHING (backed by the

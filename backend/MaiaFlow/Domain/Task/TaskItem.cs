@@ -15,8 +15,10 @@ namespace MaiaFlow.Domain.TaskItem
         public int UserId { get; private set; }
 
         // Constructors
+        // For EF Core, which sets the properties after construction.
         private TaskItem()
         {
+            Title = null!;
         }
 
         private TaskItem(string title, string? description, DateTime? dueDate, int userId)

@@ -64,6 +64,28 @@ namespace MaiaFlow.Tests.Integration
             }
         }
 
+        public class RequestErrorTests
+        {
+            [Theory]
+            [InlineData(StatusCodes.Status413PayloadTooLarge, StatusCodes.Status413PayloadTooLarge)]
+            [InlineData(StatusCodes.Status400BadRequest, StatusCodes.Status400BadRequest)]
+            public async Task Bad_requests_keep_the_status_kestrel_gives_them(int kestrelStatus, int expected)
+            {
+                var services = new ServiceCollection();
+                services.AddLogging();
+                services.AddProblemDetails();
+                await using var provider = services.BuildServiceProvider();
+                var handler = new ApiExceptionHandler(
+                    provider.GetRequiredService<IProblemDetailsService>(), NullLogger<ApiExceptionHandler>.Instance);
+                var context = new DefaultHttpContext { RequestServices = provider };
+                context.Response.Body = new MemoryStream();
+
+                await handler.TryHandleAsync(context, new BadHttpRequestException("body", kestrelStatus), CancellationToken.None);
+
+                Assert.Equal(expected, context.Response.StatusCode);
+            }
+        }
+
         public class ForwardedHeadersConfigTests
         {
             [Fact]
