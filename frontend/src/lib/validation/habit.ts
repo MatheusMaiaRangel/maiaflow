@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isDateOnly, type DateOnly } from "@/lib/dates";
+import { addDays, formatDateShort, isDateOnly, type DateOnly } from "@/lib/dates";
 import { effectiveFromBounds, startDateBounds, type DateBounds } from "@/lib/habits/date-limits";
 import {
   FREQUENCY_TYPES,
@@ -106,11 +106,15 @@ export function createHabitSchema(today: DateOnly) {
 export const editHabitSchema = z.object({ title, description });
 
 /** "Alterar recorrência": the new rule plus an optional start date (empty = first free day). */
-export function changeRecurrenceSchema(today: DateOnly) {
-  const bounds = effectiveFromBounds(today);
+export function changeRecurrenceSchema(today: DateOnly, currentRuleStart?: DateOnly) {
+  const bounds = effectiveFromBounds(today, currentRuleStart);
+  const rangeMessage =
+    bounds.min === addDays(today, 1)
+      ? "A data deve ser de amanhã até 5 anos à frente."
+      : `A data deve ser a partir de ${formatDateShort(bounds.min)}, quando começa a recorrência atual.`;
   return z.object({
     recurrence: recurrenceSchema,
-    effectiveFrom: dateWithin(bounds, "A data deve ser de amanhã até 5 anos à frente."),
+    effectiveFrom: dateWithin(bounds, rangeMessage),
   });
 }
 

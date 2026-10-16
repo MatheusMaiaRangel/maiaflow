@@ -44,8 +44,9 @@ type FormProps = { habit: Habit; today: DateOnly; onDone: () => void };
 
 function ChangeRecurrenceForm({ habit, today, onDone }: FormProps) {
   const [serverError, setServerError] = useState<string>();
-  const schema = useMemo(() => changeRecurrenceSchema(today), [today]);
-  const bounds = useMemo(() => effectiveFromBounds(today), [today]);
+  const currentStart = dateOnly(habit.currentEffectiveFrom);
+  const schema = useMemo(() => changeRecurrenceSchema(today, currentStart), [today, currentStart]);
+  const bounds = useMemo(() => effectiveFromBounds(today, currentStart), [today, currentStart]);
   const changeRecurrence = useChangeRecurrence();
   const form = useForm<ChangeRecurrenceFormValues>({
     resolver: zodResolver(schema),
@@ -54,7 +55,6 @@ function ChangeRecurrenceForm({ habit, today, onDone }: FormProps) {
   const { register, handleSubmit, control, setError } = form;
   const { errors } = form.formState;
   const effectiveFrom = useWatch({ control, name: "effectiveFrom" });
-  const currentStart = dateOnly(habit.currentEffectiveFrom);
 
   const onSubmit = (values: ChangeRecurrenceFormValues) => {
     setServerError(undefined);

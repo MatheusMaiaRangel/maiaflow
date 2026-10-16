@@ -21,4 +21,9 @@ describe("date bounds", () => {
   it("allows a recurrence change from tomorrow to 5 years ahead", () => {
     expect(effectiveFromBounds("2026-10-14")).toEqual({ min: "2026-10-15", max: "2031-10-14" });
   });
+
+  it("never starts before the current rule, which may begin in the future", () => {
+    expect(effectiveFromBounds("2026-10-14", "2026-10-20").min).toBe("2026-10-20");
+    expect(effectiveFromBounds("2026-10-14", "2026-01-01").min).toBe("2026-10-15");
+  });
 });

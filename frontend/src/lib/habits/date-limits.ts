@@ -21,7 +21,10 @@ export function startDateBounds(today: DateOnly): DateBounds {
 /**
  * Allowed "apply from" dates of a recurrence change. Today's occurrences are generated as soon as the Today
  * or Calendar screen opens, and the API only accepts days after the last generated one: start at tomorrow.
+ * A change also cannot start before the current rule, which may itself be scheduled for a later day.
  */
-export function effectiveFromBounds(today: DateOnly): DateBounds {
-  return { min: addDays(today, 1), max: shiftYears(today, MAX_YEARS_AHEAD) };
+export function effectiveFromBounds(today: DateOnly, currentRuleStart?: DateOnly): DateBounds {
+  const tomorrow = addDays(today, 1);
+  const min = currentRuleStart && currentRuleStart > tomorrow ? currentRuleStart : tomorrow;
+  return { min, max: shiftYears(today, MAX_YEARS_AHEAD) };
 }

@@ -188,6 +188,19 @@ describe("changeRecurrenceSchema", () => {
     }
   });
 
+  it("rejects days before a current rule that starts in the future", () => {
+    const scheduled = changeRecurrenceSchema(TODAY, "2026-10-20");
+
+    expect(
+      messages(
+        scheduled.safeParse({ recurrence: DEFAULT_RECURRENCE, effectiveFrom: "2026-10-19" }),
+      ),
+    ).toEqual(["A data deve ser a partir de 20/10/2026, quando começa a recorrência atual."]);
+    expect(
+      scheduled.safeParse({ recurrence: DEFAULT_RECURRENCE, effectiveFrom: "2026-10-20" }).success,
+    ).toBe(true);
+  });
+
   it("rejects text that is not a date", () => {
     expect(
       schema.safeParse({ recurrence: DEFAULT_RECURRENCE, effectiveFrom: "amanhã" }).success,
