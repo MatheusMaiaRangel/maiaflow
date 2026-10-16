@@ -2,14 +2,17 @@ using MaiaFlow.Application;
 using MaiaFlow.Application.DTOs.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using MaiaFlow.Infrastructure;
 
 namespace MaiaFlow.Controllers
 {
     [Route("api")]
-    public class UserController(IUserService userService) : AuthenticatedControllerBase
+    public class UserController(IUserService userService, AccountLoginLimiter accountLoginLimiter) : AuthenticatedControllerBase
     {
         /// <summary>Registers a new user.</summary>
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimitingExtensions.SignUpPolicy)]
         [HttpPost("users")]
         [ProducesResponseType<ReadUserDTO>(StatusCodes.Status201Created)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -22,10 +25,14 @@ namespace MaiaFlow.Controllers
 
         /// <summary>Signs in and returns a JWT to send as <c>Authorization: Bearer</c>.</summary>
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimitingExtensions.LoginPolicy)]
         [HttpPost("auth/login")]
         [ProducesResponseType<AuthResponseDTO>(StatusCodes.Status200OK)]
         public async Task<ActionResult<AuthResponseDTO>> Login(LoginUserDTO loginDto)
         {
+            using var lease = accountLoginLimiter.AttemptAcquire(loginDto.Email);
+            if (!lease.IsAcquired) return this.TooManyRequests(lease);
+
             return Ok(await userService.LoginAsync(loginDto));
         }
 

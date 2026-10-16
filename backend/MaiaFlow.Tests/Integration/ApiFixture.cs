@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using MaiaFlow.Infrastructure;
@@ -12,7 +13,7 @@ namespace MaiaFlow.Tests.Integration
     /// </summary>
     public sealed class ApiFixture : IAsyncLifetime
     {
-        private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder().WithImage("postgres:16").Build();
+        private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16").Build();
         private WebApplicationFactory<Program>? _factory;
 
         public WebApplicationFactory<Program> Factory =>
@@ -28,7 +29,17 @@ namespace MaiaFlow.Tests.Integration
             Environment.SetEnvironmentVariable("Jwt__Key", "integration-tests-only-key-0123456789-abcdef");
             Environment.SetEnvironmentVariable("Cors__AllowedOrigins__0", "http://localhost:3000");
 
-            _factory = new WebApplicationFactory<Program>();
+            // Every test registers and signs in its own user from the same (unknown) address, so the
+            // production limits on login and sign-up are lifted here. RateLimitingTests brings its own.
+            _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+                builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
+                    new Dictionary<string, string?>
+                    {
+                        ["RateLimiting:Login:PermitLimit"] = "100000",
+                        ["RateLimiting:SignUp:PermitLimit"] = "100000",
+                        ["RateLimiting:LoginPerAccount:PermitLimit"] = "100000",
+                        ["RateLimiting:User:PermitLimit"] = "100000"
+                    })));
             using var scope = _factory.Services.CreateScope();
             await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
         }

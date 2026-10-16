@@ -54,7 +54,8 @@ namespace MaiaFlow
             {
                 throw new InvalidOperationException(
                     $"Jwt:Key must be a random value with at least {MinJwtKeyLength} characters " +
-                    "(the CHANGE_ME placeholder from the example file is not accepted).");
+                    "(the CHANGE_ME placeholder from the example file is not accepted). " +
+                    "With Docker Compose, set JWT_KEY in .env (generate one with: openssl rand -base64 48).");
             }
             var expiresMinutes = builder.Configuration.GetValue("Jwt:ExpiresMinutes", 60);
             if (expiresMinutes is < 5 or > 10080)
@@ -92,6 +93,8 @@ namespace MaiaFlow
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
             builder.Services.AddProblemDetails();
             builder.Services.AddExceptionHandler<ApiExceptionHandler>();
+            builder.Services.AddTrustedForwardedHeaders(builder.Configuration);
+            builder.Services.AddAuthRateLimiting();
             var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
             builder.Services.AddCors(options =>
                 options.AddPolicy(CorsPolicyName, policy => policy
@@ -119,7 +122,14 @@ namespace MaiaFlow
             builder.Services.AddScoped<IHabitOccurrenceRepository, HabitOccurrenceRepository>();
             builder.Services.AddScoped<IHabitService, HabitService>();
             var app = builder.Build();
+            if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+            {
+                using var scope = app.Services.CreateScope();
+                scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+            }
+
             // Configure the HTTP request pipeline.
+            app.UseTrustedForwardedHeaders();
             app.UseExceptionHandler();
             app.UseStatusCodePages();
             if (app.Environment.IsDevelopment())
@@ -135,6 +145,8 @@ namespace MaiaFlow
             
             app.UseCors(CorsPolicyName);
             app.UseAuthentication();
+            // After authentication: the per-user policy partitions on the signed-in user's id.
+            app.UseRateLimiter();
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
