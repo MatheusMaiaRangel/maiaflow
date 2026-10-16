@@ -23,11 +23,6 @@ export function calendarKey(start: DateOnly, end: DateOnly) {
   return [...CALENDAR_KEY, start, end] as const;
 }
 
-/** Future days have no stored occurrence yet: the API sends them with `id = 0` and rejects updates. */
-export function isEditableOccurrence(occurrence: Occurrence): boolean {
-  return occurrence.id > 0;
-}
-
 async function fetchOccurrences(start: DateOnly, end: DateOnly): Promise<Occurrence[]> {
   return apiData(
     await getBrowserApi().GET("/api/habits/calendar", { params: { query: { start, end } } }),

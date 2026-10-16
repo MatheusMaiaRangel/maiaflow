@@ -13,7 +13,6 @@ vi.mock("@/lib/api/browser", async (importOriginal) => ({
 
 import {
   calendarKey,
-  isEditableOccurrence,
   useOccurrences,
   useSetOccurrenceStatus,
   type Occurrence,
@@ -43,13 +42,6 @@ function setup() {
 beforeEach(() => {
   get.mockReset();
   patch.mockReset();
-});
-
-describe("isEditableOccurrence", () => {
-  test("only stored occurrences (id above zero) can be changed", () => {
-    expect(isEditableOccurrence(occurrence(7))).toBe(true);
-    expect(isEditableOccurrence(occurrence(0))).toBe(false);
-  });
 });
 
 describe("useOccurrences", () => {
