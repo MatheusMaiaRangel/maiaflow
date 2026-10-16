@@ -38,6 +38,15 @@ export interface paths {
             "application/json": components["schemas"]["ProblemDetails"];
           };
         };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
       };
     };
     put?: never;
@@ -77,6 +86,15 @@ export interface paths {
         };
         /** @description Unauthorized */
         401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -137,6 +155,15 @@ export interface paths {
             "application/json": components["schemas"]["ProblemDetails"];
           };
         };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
       };
     };
     put?: never;
@@ -170,6 +197,15 @@ export interface paths {
         };
         /** @description Not Found */
         404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -228,6 +264,15 @@ export interface paths {
         };
         /** @description Not Found */
         404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -306,6 +351,15 @@ export interface paths {
             "application/json": components["schemas"]["ProblemDetails"];
           };
         };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
       };
     };
     trace?: never;
@@ -355,6 +409,15 @@ export interface paths {
         };
         /** @description Unauthorized */
         401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -430,6 +493,15 @@ export interface paths {
             "application/json": components["schemas"]["ProblemDetails"];
           };
         };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
       };
     };
     trace?: never;
@@ -462,6 +534,15 @@ export interface paths {
         };
         /** @description Unauthorized */
         401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -508,6 +589,15 @@ export interface paths {
         };
         /** @description Unauthorized */
         401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -568,6 +658,15 @@ export interface paths {
             "application/json": components["schemas"]["ProblemDetails"];
           };
         };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
       };
     };
     put?: never;
@@ -601,6 +700,15 @@ export interface paths {
         };
         /** @description Not Found */
         404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -666,6 +774,15 @@ export interface paths {
             "application/json": components["schemas"]["ProblemDetails"];
           };
         };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
       };
     };
     trace?: never;
@@ -720,6 +837,15 @@ export interface paths {
         };
         /** @description Not Found */
         404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -792,6 +918,15 @@ export interface paths {
             "application/json": components["schemas"]["ProblemDetails"];
           };
         };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
       };
     };
     delete?: never;
@@ -836,6 +971,15 @@ export interface paths {
         };
         /** @description Unauthorized */
         401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -895,6 +1039,15 @@ export interface paths {
             "application/json": components["schemas"]["ProblemDetails"];
           };
         };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
       };
     };
     put?: never;
@@ -927,6 +1080,15 @@ export interface paths {
         };
         /** @description Not Found */
         404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
@@ -992,6 +1154,15 @@ export interface paths {
         };
         /** @description Conflict */
         409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
           headers: {
             [name: string]: unknown;
           };
