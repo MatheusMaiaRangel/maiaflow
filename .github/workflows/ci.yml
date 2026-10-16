@@ -1,0 +1,199 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch or pull request makes the older run pointless.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  NEXT_TELEMETRY_DISABLED: "1"
+  # Keep in sync with the base images in backend/Dockerfile and frontend/Dockerfile.
+  DOTNET_VERSION: 10.0.x
+  NODE_VERSION: "24"
+
+jobs:
+  backend:
+    name: Backend (build, tests, coverage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore maiaflow.sln
+
+      # Warnings are errors. NuGet vulnerability advisories (NU1901-NU1904) stay warnings: a newly
+      # published advisory shows up as an annotation without blocking unrelated work.
+      - name: Build (warnings as errors)
+        run: >-
+          dotnet build maiaflow.sln -c Release --no-restore
+          -warnaserror -warnnotaserror:NU1901,NU1902,NU1903,NU1904
+
+      # Integration tests start PostgreSQL through Testcontainers (Docker is available on the runner).
+      - name: Test with coverage
+        run: >-
+          dotnet test backend/MaiaFlow.Tests -c Release --no-build
+          --collect:"XPlat Code Coverage"
+          --results-directory ${{ runner.temp }}/backend-test-results
+          --logger "trx;LogFileName=backend-tests.trx"
+
+      - name: Upload test results and coverage
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-test-results
+          path: ${{ runner.temp }}/backend-test-results
+          retention-days: 14
+          if-no-files-found: warn
+
+  frontend:
+    name: Frontend (lint, types, format, tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run format:check
+
+      - name: Unit tests with coverage
+        run: npm test -- --coverage
+
+      - name: Upload coverage
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+          retention-days: 14
+          if-no-files-found: warn
+
+      - run: npm run build
+
+      # Only runtime dependencies ship in the image, so only they are audited.
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          # CI-only throwaway database: the service lives for this job and is never reachable from outside.
+          POSTGRES_PASSWORD: e2e-ci-only
+          POSTGRES_DB: maiaflow_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d maiaflow_e2e"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      CI: "true"
+      E2E_DB_CONNECTION: Host=localhost;Port=5432;Database=maiaflow_e2e;Username=postgres;Password=e2e-ci-only
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # playwright.config.ts builds and starts the API (port 5111) and the web app (port 3100) itself.
+      - run: npm run e2e
+
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 14
+          if-no-files-found: ignore
+
+  docker:
+    name: Docker images (build and smoke test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      # Throwaway secrets for this run only; the file is never committed or uploaded.
+      - name: Create .env
+        run: |
+          umask 077
+          {
+            echo "POSTGRES_USER=maiaflow"
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)"
+            echo "POSTGRES_DB=maiaflow"
+            echo "JWT_KEY=$(openssl rand -base64 48 | tr -d '\n')"
+          } > .env
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Start the stack
+        run: docker compose up -d --wait --wait-timeout 180
+
+      - name: Smoke test
+        run: |
+          headers="$(curl -fsS -D - -o /dev/null http://localhost:3000/login)"
+          echo "$headers"
+          grep -qi '^content-security-policy:' <<<"$headers"
+          grep -qi '^x-frame-options: DENY' <<<"$headers"
+          # The API is not published on the host.
+          if curl -s -o /dev/null --max-time 3 http://localhost:8080; then
+            echo "The API must not be reachable from the host" >&2
+            exit 1
+          fi
+
+      - name: Show logs
+        if: ${{ failure() }}
+        run: docker compose logs --no-color
+
+      - name: Stop the stack
+        if: ${{ always() }}
+        run: docker compose down -v
