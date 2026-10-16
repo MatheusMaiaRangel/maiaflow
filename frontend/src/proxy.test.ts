@@ -47,4 +47,20 @@ describe("proxy (optimistic auth check)", () => {
   it("lets signed-in users through", () => {
     expect(call("/tasks", jwt(3600)).headers.get("location")).toBeNull();
   });
+
+  it("adds a Content-Security-Policy whose nonce is new for every request", () => {
+    const first = call("/tasks", jwt(3600)).headers.get("content-security-policy");
+    const second = call("/tasks", jwt(3600)).headers.get("content-security-policy");
+
+    expect(first).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
+    expect(first).not.toBe(second);
+  });
+
+  it("forwards the nonce to the page through request headers", () => {
+    const response = call("/login");
+    const overridden = response.headers.get("x-middleware-override-headers") ?? "";
+
+    expect(overridden).toContain("x-nonce");
+    expect(overridden).toContain("content-security-policy");
+  });
 });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/auth/constants";
 import { isTokenUsable } from "@/lib/auth/jwt";
+import { buildContentSecurityPolicy, generateNonce } from "@/lib/security/csp";
 
 const AUTH_PAGES = ["/login", "/signup"];
 
@@ -24,7 +25,25 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next();
+  return nextWithCsp(request);
+}
+
+/**
+ * Lets the request through with a Content-Security-Policy. The nonce travels in the request headers
+ * so Next.js can stamp it on the scripts it renders, and the `x-nonce` copy lets the root layout hand it
+ * to the theme script.
+ */
+function nextWithCsp(request: NextRequest) {
+  const nonce = generateNonce();
+  const policy = buildContentSecurityPolicy(nonce, process.env.NODE_ENV === "development");
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("content-security-policy", policy);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("content-security-policy", policy);
+  return response;
 }
 
 export const config = {
