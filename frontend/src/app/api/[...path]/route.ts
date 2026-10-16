@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { checkBffRequest, MAX_BODY_BYTES } from "@/lib/api/bff";
+import {
+  checkBffRequest,
+  MAX_BODY_BYTES,
+  readBodyWithLimit,
+  resolveExpectedOrigin,
+} from "@/lib/api/bff";
 import { SESSION_COOKIE } from "@/lib/auth/constants";
 import { env } from "@/lib/env";
 
@@ -11,7 +16,7 @@ function problem(status: number, detail: string) {
     { status, title: detail, detail },
     {
       status,
-      headers: { "content-type": "application/problem+json" },
+      headers: { "content-type": "application/problem+json", "cache-control": "no-store" },
     },
   );
 }
@@ -29,7 +34,12 @@ async function forward(request: NextRequest, { params }: Context) {
     method: request.method,
     path,
     origin: request.headers.get("origin"),
-    expectedOrigin: request.nextUrl.origin,
+    expectedOrigin: resolveExpectedOrigin({
+      appOrigin: env.APP_ORIGIN,
+      forwardedHost: request.headers.get("x-forwarded-host"),
+      forwardedProto: request.headers.get("x-forwarded-proto"),
+      requestOrigin: request.nextUrl.origin,
+    }),
     contentLength: Number(request.headers.get("content-length")) || null,
     token,
   });
@@ -39,8 +49,9 @@ async function forward(request: NextRequest, { params }: Context) {
     return response;
   }
 
-  const body = hasBody ? await request.arrayBuffer() : undefined;
-  if (body && body.byteLength > MAX_BODY_BYTES) return problem(413, "Requisição muito grande.");
+  // Content-Length can be missing (chunked) or lie, so the limit is enforced while reading.
+  const body = hasBody ? await readBodyWithLimit(request.body, MAX_BODY_BYTES) : undefined;
+  if (body === null) return problem(413, "Requisição muito grande.");
 
   const target = `${env.API_URL}/api/${path.map(encodeURIComponent).join("/")}${request.nextUrl.search}`;
   const headers = new Headers({ authorization: `Bearer ${token}` });
@@ -64,7 +75,11 @@ async function forward(request: NextRequest, { params }: Context) {
 
   const response = new NextResponse(upstream.status === 204 ? null : upstream.body, {
     status: upstream.status,
-    headers: { "content-type": upstream.headers.get("content-type") ?? "application/json" },
+    headers: {
+      "content-type": upstream.headers.get("content-type") ?? "application/json",
+      // Personal data: never let a browser or proxy cache it.
+      "cache-control": "no-store",
+    },
   });
   const location = upstream.headers.get("location");
   if (location) response.headers.set("location", new URL(location, target).pathname);

@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createApiClient } from "@/lib/api/client";
+import { getPublicApi } from "@/lib/api/client";
 import {
   GENERIC_ERROR_MESSAGE,
   NETWORK_ERROR_MESSAGE,
@@ -26,7 +26,9 @@ async function signIn(
   password: string,
 ): Promise<AuthFormState & { token?: string }> {
   try {
-    const { data, error, response } = await createApiClient().POST("/api/auth/login", {
+    const { data, error, response } = await (
+      await getPublicApi()
+    ).POST("/api/auth/login", {
       body: { email, password },
     });
     if (response.status === 401) return { error: INVALID_CREDENTIALS };
@@ -54,7 +56,9 @@ export async function signupAction(input: unknown): Promise<AuthFormState> {
   const { name, email, password } = parsed.data;
 
   try {
-    const { error, response } = await createApiClient().POST("/api/users", {
+    const { error, response } = await (
+      await getPublicApi()
+    ).POST("/api/users", {
       body: { name, email, password },
     });
     if (response.status === 409) return { fieldErrors: { email: EMAIL_TAKEN } };

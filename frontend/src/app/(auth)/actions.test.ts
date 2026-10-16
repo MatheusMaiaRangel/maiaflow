@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const post = vi.fn();
 const createSession = vi.fn();
 
-vi.mock("@/lib/api/client", () => ({ createApiClient: () => ({ POST: post }) }));
+vi.mock("@/lib/api/client", () => ({ getPublicApi: async () => ({ POST: post }) }));
 vi.mock("@/lib/auth/session", () => ({
   createSession: (...args: unknown[]) => createSession(...args),
 }));

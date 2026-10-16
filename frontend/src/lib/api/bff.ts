@@ -38,3 +38,66 @@ export function checkBffRequest(input: {
   }
   return null;
 }
+
+/**
+ * The origin browsers see for this app, which the `Origin` header of state-changing calls must match.
+ * Behind a reverse proxy the server's own URL can differ (internal host, plain http), so, in order:
+ * the configured `APP_ORIGIN`, the proxy's `X-Forwarded-Host`/`-Proto`, then the request URL's origin.
+ * A browser cannot forge those headers on a cross-site request (custom headers need a CORS preflight,
+ * which the BFF never grants), so trusting them does not weaken the check.
+ */
+export function resolveExpectedOrigin(input: {
+  appOrigin: string | undefined;
+  forwardedHost: string | null;
+  forwardedProto: string | null;
+  requestOrigin: string;
+}): string {
+  const { appOrigin, forwardedHost, forwardedProto, requestOrigin } = input;
+  if (appOrigin) return appOrigin;
+
+  const host = forwardedHost?.split(",")[0]?.trim();
+  if (!host) return requestOrigin;
+
+  const proto = forwardedProto?.split(",")[0]?.trim().toLowerCase();
+  const protocol =
+    proto === "http" || proto === "https" ? proto : new URL(requestOrigin).protocol.slice(0, -1);
+  try {
+    return new URL(`${protocol}://${host}`).origin;
+  } catch {
+    return requestOrigin;
+  }
+}
+
+/**
+ * Reads a request body but gives up as soon as it passes `maxBytes`, so a client that omits
+ * `Content-Length` (chunked) cannot make the server buffer an arbitrarily large body.
+ * Returns null when the limit was exceeded.
+ */
+export async function readBodyWithLimit(
+  stream: ReadableStream<Uint8Array> | null,
+  maxBytes: number,
+): Promise<Uint8Array<ArrayBuffer> | null> {
+  if (!stream) return new Uint8Array(0);
+
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkBffRequest, MAX_BODY_BYTES } from "./bff";
+import { checkBffRequest, MAX_BODY_BYTES, readBodyWithLimit, resolveExpectedOrigin } from "./bff";
 
 function validToken(): string {
   const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
@@ -49,5 +49,103 @@ describe("checkBffRequest", () => {
     const post = { ...base, method: "PATCH", origin: base.expectedOrigin };
     expect(checkBffRequest({ ...post, contentLength: MAX_BODY_BYTES + 1 })?.status).toBe(413);
     expect(checkBffRequest({ ...post, contentLength: MAX_BODY_BYTES })).toBeNull();
+  });
+});
+
+describe("resolveExpectedOrigin", () => {
+  const request = {
+    forwardedHost: null,
+    forwardedProto: null,
+    requestOrigin: "http://0.0.0.0:3000",
+  };
+
+  it("prefers the configured public origin", () => {
+    expect(
+      resolveExpectedOrigin({
+        ...request,
+        appOrigin: "https://app.example.com",
+        forwardedHost: "x.test",
+      }),
+    ).toBe("https://app.example.com");
+  });
+
+  it("uses the proxy's forwarded host and protocol", () => {
+    expect(
+      resolveExpectedOrigin({
+        ...request,
+        appOrigin: undefined,
+        forwardedHost: "app.example.com",
+        forwardedProto: "https",
+      }),
+    ).toBe("https://app.example.com");
+  });
+
+  it("takes the first value of a comma-separated forwarded chain", () => {
+    expect(
+      resolveExpectedOrigin({
+        ...request,
+        appOrigin: undefined,
+        forwardedHost: "app.example.com, internal:3000",
+        forwardedProto: "https, http",
+      }),
+    ).toBe("https://app.example.com");
+  });
+
+  it("keeps the request protocol when the forwarded one is missing or unknown", () => {
+    const base = { ...request, appOrigin: undefined, forwardedHost: "app.example.com:8080" };
+    expect(
+      resolveExpectedOrigin({
+        ...base,
+        requestOrigin: "http://localhost:3000",
+        forwardedProto: null,
+      }),
+    ).toBe("http://app.example.com:8080");
+    expect(
+      resolveExpectedOrigin({
+        ...base,
+        requestOrigin: "https://localhost:3000",
+        forwardedProto: "javascript",
+      }),
+    ).toBe("https://app.example.com:8080");
+  });
+
+  it("falls back to the request origin without a proxy or with a garbage host", () => {
+    expect(resolveExpectedOrigin({ ...request, appOrigin: undefined })).toBe("http://0.0.0.0:3000");
+    expect(
+      resolveExpectedOrigin({ ...request, appOrigin: undefined, forwardedHost: "bad host/" }),
+    ).toBe("http://0.0.0.0:3000");
+  });
+});
+
+describe("readBodyWithLimit", () => {
+  const streamOf = (...parts: string[]) =>
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (const part of parts) controller.enqueue(new TextEncoder().encode(part));
+        controller.close();
+      },
+    });
+
+  it("returns the whole body when it fits, across chunks", async () => {
+    const body = await readBodyWithLimit(streamOf("hel", "lo"), 5);
+
+    expect(new TextDecoder().decode(body!)).toBe("hello");
+  });
+
+  it("returns an empty body for a request without one", async () => {
+    expect(await readBodyWithLimit(null, 10)).toEqual(new Uint8Array(0));
+  });
+
+  it("stops reading and returns null as soon as the limit is passed", async () => {
+    let pulls = 0;
+    const endless = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulls += 1;
+        controller.enqueue(new Uint8Array(1024));
+      },
+    });
+
+    expect(await readBodyWithLimit(endless, 4096)).toBeNull();
+    expect(pulls).toBeLessThan(10);
   });
 });
