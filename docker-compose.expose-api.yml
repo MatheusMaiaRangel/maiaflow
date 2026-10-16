@@ -1,0 +1,14 @@
+# Optional override that publishes the API on the host (for debugging with curl or Swagger tools):
+#   docker compose -f docker-compose.yml -f docker-compose.expose-api.yml up -d
+# Call it as http://localhost:<API_PORT>: AllowedHosts rejects other host names, 127.0.0.1 included.
+services:
+  api:
+    ports:
+      - "${API_BIND:-127.0.0.1}:${API_PORT:-5012}:8080"
+    environment:
+      # Requests from the host reach a published port through the Docker bridge gateway, which is
+      # inside the default trusted range (172.16.0.0/12). Trusting it would let anyone on the host
+      # forge X-Forwarded-For and dodge the per-client login/sign-up rate limits, so forwarded
+      # headers are ignored while the API is published. Side effect: FORWARD_CLIENT_IP has no effect
+      # then (all visitors share the web container's rate-limit bucket), so use this for debugging only.
+      ForwardedHeaders__TrustedNetworks: ""

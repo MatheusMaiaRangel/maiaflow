@@ -1,4 +1,6 @@
-# Local development database. Phase 4 extends this file with the API and web services.
+# MaiaFlow stack: database, API and web app.
+#   docker compose up -d db   -> only the database (local development)
+#   docker compose up -d      -> the whole app (needs JWT_KEY in .env, see .env.example)
 services:
   db:
     image: postgres:16
@@ -16,6 +18,57 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  api:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    # The app needs no Linux capabilities and never escalates privileges. (Not on db: the postgres
+    # entrypoint needs them to fix ownership of the data directory on first start.)
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-maiaflow};Username=${POSTGRES_USER:-maiaflow};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
+      # A ":?" here would break "docker compose up -d db" when JWT_KEY is not set yet (Compose
+      # interpolates the whole file). The API itself refuses the CHANGE_ME placeholder and exits
+      # with a clear message instead.
+      Jwt__Key: ${JWT_KEY:-CHANGE_ME_set_JWT_KEY_in_dotenv}
+      Database__MigrateOnStartup: "true"
+      TimeZone: America/Sao_Paulo
+      # Only the web container (host "api") and the container's own health check talk to the API.
+      AllowedHosts: api;localhost
+      # Proxies allowed to set X-Forwarded-* headers: comma-separated CIDRs (Docker bridge ranges).
+      ForwardedHeaders__TrustedNetworks: ${TRUSTED_PROXY_NETWORKS:-172.16.0.0/12}
+    # Not published to the host: only the web container reaches it. To publish it on the host,
+    # add the override file:  docker compose -f docker-compose.yml -f docker-compose.expose-api.yml up -d
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # Also needed at build time (see frontend/Dockerfile). Rebuild after changing it.
+        APP_ORIGIN: ${APP_ORIGIN:-}
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      API_URL: http://api:8080
+      # Public URL of the web app, as typed in the browser (e.g. https://flow.example.com).
+      APP_ORIGIN: ${APP_ORIGIN:-}
+      # "true" only behind a reverse proxy that overwrites X-Forwarded-For (see .env.example).
+      FORWARD_CLIENT_IP: ${FORWARD_CLIENT_IP:-false}
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-3000}:3000"
 
 volumes:
   maiaflow-db:

@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+coverage
+.git
+.env*
+!.env.example
+*.tsbuildinfo
+npm-debug.log*
+Dockerfile
+.dockerignore
+# End-to-end tests run on the host or in CI, not in the image. The config goes too: it imports from
+# e2e/ and `next build` type-checks every .ts file in the context.
+e2e
+playwright.config.ts
+playwright-report
+test-results
