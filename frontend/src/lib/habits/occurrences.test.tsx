@@ -13,6 +13,7 @@ vi.mock("@/lib/api/browser", async (importOriginal) => ({
 
 import {
   calendarKey,
+  STATS_KEY,
   useOccurrences,
   useSetOccurrenceStatus,
   type Occurrence,
@@ -154,5 +155,28 @@ describe("useSetOccurrenceStatus", () => {
       occurrence(0),
       occurrence(0),
     ]);
+  });
+
+  test("refetches the calendars and the stats once the last mutation settles", async () => {
+    const { queryClient, wrapper } = setup();
+    const stats = [...STATS_KEY, 30];
+    queryClient.setQueryData(calendarKey(START, END), [occurrence(1), occurrence(2)]);
+    queryClient.setQueryData(stats, { days: [], habits: [] });
+    let finishFirst: (value: unknown) => void = () => {};
+    patch
+      .mockReturnValueOnce(new Promise((resolve) => (finishFirst = resolve)))
+      .mockResolvedValueOnce(ok(occurrence(2, "Completed")));
+    const { result } = renderHook(() => useSetOccurrenceStatus(), { wrapper });
+
+    act(() => result.current.mutate({ id: 1, status: "Completed" }));
+    await act(() => result.current.mutateAsync({ id: 2, status: "Completed" }));
+
+    // The first change is still in flight: refetching now could bring its old status back.
+    expect(queryClient.getQueryState(stats)?.isInvalidated).toBe(false);
+
+    await act(async () => finishFirst(ok(occurrence(1, "Completed"))));
+
+    await waitFor(() => expect(queryClient.getQueryState(stats)?.isInvalidated).toBe(true));
+    expect(queryClient.getQueryState(calendarKey(START, END))?.isInvalidated).toBe(true);
   });
 });

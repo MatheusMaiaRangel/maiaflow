@@ -1,29 +1,36 @@
 "use client";
 
-import { AlertCircleIcon, CalendarCheckIcon, CircleCheckBigIcon } from "lucide-react";
+import { CalendarCheckIcon, CircleCheckBigIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
-import { OccurrenceStatusControl } from "@/components/calendar";
+import { HabitCalendar, OccurrenceStatusControl } from "@/components/calendar";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { TaskRow } from "@/components/tasks";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { errorMessage } from "@/lib/api/browser";
 import { disabledReasonFor } from "@/lib/calendar/days";
 import { formatDateWithWeekday, type DateOnly } from "@/lib/dates";
 import { useOccurrences, useSetOccurrenceStatus } from "@/lib/habits/occurrences";
 import type { Occurrence } from "@/lib/habits/occurrences";
+import type { HabitStats } from "@/lib/habits/stats";
 import type { ServerSeed } from "@/lib/query-seed";
 import { useTasks, type Task } from "@/lib/tasks/hooks";
 import { habitProgress, selectTodayTasks, taskProgress, type Progress } from "@/lib/today";
+import { Dashboards } from "./dashboards";
+import { ListSkeleton, SectionError } from "./section-states";
 
 type TodayViewProps = {
   /** Today in Brasília, computed on the server. */
   today: DateOnly;
   tasksSeed: ServerSeed<Task[]>;
+  /** Today's occurrences. */
   occurrencesSeed: ServerSeed<Occurrence[]>;
+  /** Occurrences of the grid of today's month. */
+  calendarSeed: ServerSeed<Occurrence[]>;
+  /** Missing when the server could not read it; the dashboards then fetch it themselves. */
+  statsSeed?: ServerSeed<HabitStats>;
 };
 
 function capitalize(text: string): string {
@@ -51,30 +58,6 @@ function Section({
       </div>
       {children}
     </section>
-  );
-}
-
-function SectionError({ what, onRetry }: { what: string; onRetry: () => void }) {
-  return (
-    <div
-      role="alert"
-      className="flex flex-col items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-8 text-center"
-    >
-      <AlertCircleIcon className="size-6 text-destructive" aria-hidden />
-      <p className="font-medium">Não foi possível carregar {what}</p>
-      <Button variant="outline" onClick={onRetry}>
-        Tentar novamente
-      </Button>
-    </div>
-  );
-}
-
-function ListSkeleton({ label }: { label: string }) {
-  return (
-    <div role="status" aria-busy="true" aria-label={label} className="grid gap-2">
-      <Skeleton className="h-16 rounded-xl" />
-      <Skeleton className="h-16 rounded-xl" />
-    </div>
   );
 }
 
@@ -192,14 +175,38 @@ function TasksSection({ today, seed }: { today: DateOnly; seed: ServerSeed<Task[
   );
 }
 
-/** The Today screen: habits and tasks for the Brasília date the server computed. */
-export function TodayView({ today, tasksSeed, occurrencesSeed }: TodayViewProps) {
+/**
+ * The Today screen. Phones and tablets get one column: calendar, lists, then the dashboards. From `lg` the
+ * lists and the calendar sit side by side (the calendar comes first in the DOM, placed on the right) with the
+ * dashboards below at full width.
+ */
+export function TodayView({
+  today,
+  tasksSeed,
+  occurrencesSeed,
+  calendarSeed,
+  statsSeed,
+}: TodayViewProps) {
   return (
     <>
       <PageHeader title="Hoje" description={capitalize(formatDateWithWeekday(today))} />
-      <div className="grid max-w-3xl gap-8">
-        <HabitsSection today={today} seed={occurrencesSeed} />
-        <TasksSection today={today} seed={tasksSeed} />
+      <div className="grid min-w-0 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <section aria-label="Calendário" className="min-w-0 lg:col-start-2 lg:row-start-1">
+            {/* Keyed by the day so the selected day and month start over after midnight. */}
+            <HabitCalendar key={today} today={today} seed={calendarSeed} />
+          </section>
+          <div className="grid min-w-0 content-start gap-8 lg:col-start-1 lg:row-start-1">
+            <HabitsSection today={today} seed={occurrencesSeed} />
+            <TasksSection today={today} seed={tasksSeed} />
+          </div>
+        </div>
+        <Dashboards
+          today={today}
+          tasksSeed={tasksSeed}
+          occurrencesSeed={occurrencesSeed}
+          statsSeed={statsSeed}
+        />
       </div>
     </>
   );

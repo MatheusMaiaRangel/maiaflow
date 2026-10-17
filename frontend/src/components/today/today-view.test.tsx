@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Occurrence } from "@/lib/habits/occurrences";
+import type { HabitStats } from "@/lib/habits/stats";
 import type { Task } from "@/lib/tasks/hooks";
 import { TodayView } from "./today-view";
 
@@ -24,6 +25,27 @@ function occurrence(id: number, status: Occurrence["status"] = "Pending"): Occur
   return { id, habitId: id, habitTitle: `Hábito ${id}`, date: `${TODAY}T00:00:00`, status };
 }
 
+function stats(occurrences: Occurrence[]): HabitStats {
+  return {
+    start: "2026-09-15T00:00:00",
+    end: `${TODAY}T00:00:00`,
+    days: [
+      { date: `${TODAY}T00:00:00`, completed: 0, notCompleted: 0, pending: occurrences.length },
+    ],
+    habits: occurrences.map((item) => ({
+      habitId: item.habitId,
+      habitTitle: item.habitTitle,
+      scheduled: 1,
+      completed: 0,
+      notCompleted: 0,
+      pending: 1,
+      completionRate: null,
+      currentStreak: 0,
+      bestStreak: 0,
+    })),
+  };
+}
+
 function renderView(tasks: Task[], occurrences: Occurrence[]) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -35,6 +57,8 @@ function renderView(tasks: Task[], occurrences: Occurrence[]) {
       today={TODAY}
       tasksSeed={{ data: tasks, fetchedAt }}
       occurrencesSeed={{ data: occurrences, fetchedAt }}
+      calendarSeed={{ data: occurrences, fetchedAt }}
+      statsSeed={{ data: stats(occurrences), fetchedAt }}
     />,
     { wrapper },
   );
@@ -91,7 +115,8 @@ describe("TodayView", () => {
     getBrowserApi.mockReturnValue({ PATCH: patch, GET: vi.fn() });
     renderView([], [occurrence(1)]);
 
-    await userEvent.click(screen.getByRole("button", { name: "Feito" }));
+    const habits = screen.getByRole("region", { name: "Hábitos de hoje" });
+    await userEvent.click(within(habits).getByRole("button", { name: "Feito" }));
 
     expect(patch).toHaveBeenCalledWith("/api/habits/occurrences/{occurrenceId}/status", {
       params: { path: { occurrenceId: 1 } },
@@ -113,5 +138,48 @@ describe("TodayView", () => {
       params: { path: { id: 2 } },
       body: { status: "Completed" },
     });
+  });
+
+  it("puts the calendar first in the DOM, then the lists, then the dashboards", () => {
+    renderView([], [occurrence(1)]);
+
+    const calendar = screen.getByRole("region", { name: "Calendário" });
+    const habits = screen.getByRole("region", { name: "Hábitos de hoje" });
+    const tasks = screen.getByRole("region", { name: "Tarefas de hoje" });
+    const summary = screen.getByRole("region", { name: "Resumo" });
+    expect(
+      within(calendar).getByRole("grid", { name: "Calendário de hábitos" }),
+    ).toBeInTheDocument();
+    for (const [before, after] of [
+      [calendar, habits],
+      [habits, tasks],
+      [tasks, summary],
+    ]) {
+      expect(before.compareDocumentPosition(after) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+  });
+
+  it("places the calendar in the right column from lg", () => {
+    renderView([], []);
+
+    expect(screen.getByRole("region", { name: "Calendário" })).toHaveClass(
+      "lg:col-start-2",
+      "lg:row-start-1",
+    );
+  });
+
+  it("updates today's progress card when a habit is marked as done", async () => {
+    const patch = vi.fn().mockReturnValue(new Promise(() => {}));
+    getBrowserApi.mockReturnValue({ PATCH: patch, GET: vi.fn() });
+    renderView([task(2, "2026-10-14T00:00:00")], [occurrence(1)]);
+    const progress = screen.getByRole("group", { name: "Progresso do dia" });
+    expect(progress).toHaveTextContent("0%");
+    expect(progress).toHaveTextContent("0 de 2 concluídos");
+
+    const habits = screen.getByRole("region", { name: "Hábitos de hoje" });
+    await userEvent.click(within(habits).getByRole("button", { name: "Feito" }));
+
+    expect(progress).toHaveTextContent("50%");
+    expect(progress).toHaveTextContent("1 de 2 concluídos");
   });
 });

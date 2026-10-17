@@ -9,6 +9,8 @@ export type StatusMeta = {
   activeClass: string;
   /** Classes for the dot in the calendar cell. */
   dotClass: string;
+  /** Fill of the bars in the dashboard charts. */
+  barClass: string;
 };
 
 /** Display order of the three options: done, not done, pending. */
@@ -20,6 +22,7 @@ export const STATUS_OPTIONS: readonly StatusMeta[] = [
     activeClass:
       "border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-600/90 dark:border-emerald-500 dark:bg-emerald-600",
     dotClass: "bg-emerald-600 dark:bg-emerald-500",
+    barClass: "bg-emerald-600 dark:bg-emerald-500",
   },
   {
     status: "NotCompleted",
@@ -28,6 +31,7 @@ export const STATUS_OPTIONS: readonly StatusMeta[] = [
     activeClass:
       "border-rose-600 bg-rose-600 text-white hover:bg-rose-600/90 dark:border-rose-500 dark:bg-rose-600",
     dotClass: "bg-rose-600 dark:bg-rose-500",
+    barClass: "bg-rose-600 dark:bg-rose-500",
   },
   {
     status: "Pending",
@@ -35,6 +39,7 @@ export const STATUS_OPTIONS: readonly StatusMeta[] = [
     icon: CircleDashedIcon,
     activeClass: "border-foreground/30 bg-muted text-foreground hover:bg-muted",
     dotClass: "border border-muted-foreground/60 bg-transparent",
+    barClass: "bg-muted-foreground/30",
   },
 ];
 

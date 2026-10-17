@@ -18,6 +18,8 @@ export type OccurrenceStatus = components["schemas"]["HabitOccurrenceStatus"];
 /** Habit queries share the `habits` prefix, so one invalidation refreshes lists and calendars. */
 export const HABITS_KEY = ["habits"] as const;
 export const CALENDAR_KEY = [...HABITS_KEY, "calendar"] as const;
+/** Prefix of the completion history (`useHabitStats`); a status change makes it stale too. */
+export const STATS_KEY = [...HABITS_KEY, "stats"] as const;
 
 export function calendarKey(start: DateOnly, end: DateOnly) {
   return [...CALENDAR_KEY, start, end] as const;
@@ -64,7 +66,8 @@ function findCachedStatus(queryClient: QueryClient, id: number): OccurrenceStatu
 
 /**
  * Changes the status in every cached range at once. If the API refuses, only that occurrence goes back to
- * its previous status (other pending changes stay). Refetches once the last mutation in flight settles.
+ * its previous status (other pending changes stay). Once the last mutation in flight settles, refetches the
+ * calendars and the completion history (the Today dashboards).
  */
 export function useSetOccurrenceStatus() {
   const queryClient = useQueryClient();
@@ -91,7 +94,10 @@ export function useSetOccurrenceStatus() {
     },
     onSettled: () => {
       if (queryClient.isMutating({ mutationKey: HABITS_KEY }) > 1) return;
-      return queryClient.invalidateQueries({ queryKey: CALENDAR_KEY });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: CALENDAR_KEY }),
+        queryClient.invalidateQueries({ queryKey: STATS_KEY }),
+      ]);
     },
   });
 }
