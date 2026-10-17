@@ -16,7 +16,7 @@ file first, then the handoff of the last finished phase in [`docs/handoffs/`](ha
 | 2 | Frontend foundation (Next.js) | Done | [phase-2](handoffs/phase-2.md) |
 | 3 | Frontend features | Done | [phase-3](handoffs/phase-3.md) |
 | 4 | Quality and delivery | Done | [phase-4](handoffs/phase-4.md) |
-| 5 | Home screen: calendar and dashboards | Not started | — |
+| 5 | Home screen: calendar and dashboards | Done | [phase-5](handoffs/phase-5.md) |
 
 Update this table when a phase starts (`In progress`) and when it ends (`Done`, with a link to its
 handoff).
@@ -98,6 +98,7 @@ Decisions already agreed with the owner. Do not reopen them without asking.
 | D21 | Rate limits: login and sign-up per client address, login per account (e-mail), and every authenticated route per user; the client address comes only from trusted forwarded headers. | Stops brute force and BCrypt CPU abuse; the per-account limit still works when all visitors share the web server's address. |
 | D22 | The Content-Security-Policy is built per request in `proxy.ts` with a nonce; the other security headers live in `next.config.ts`. | A nonce cannot be static; Next.js stamps it on its own scripts. |
 | D23 | Docker: API on the aspnet image with tzdata, web as Next.js `standalone`; only the web port is published (127.0.0.1 by default) and the API applies migrations on startup. | One command runs the app; the API stays private behind the BFF (D20). |
+| D24 | `GET /api/habits/stats?days=N` (7–90, default 30) returns the habit history of the last N days ending today in Brasília: per-day counts by status and, per habit, counts, completion rate (today's pending occurrence left out) and current/best streak over a 365-day look-back. Tasks are not included. | The Today dashboards need history the calendar endpoint does not summarize; tasks have no completion date, so including them would need a migration. |
 
 ## Phases
 
