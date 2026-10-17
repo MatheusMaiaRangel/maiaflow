@@ -16,8 +16,13 @@ test.describe("sign-up and login", () => {
     await registerAccount(page, account);
 
     await expect(page.getByRole("button", { name: `Conta de ${account.name}` })).toBeVisible();
-    await expect(page.getByText("Nenhum hábito para hoje")).toBeVisible();
-    await expect(page.getByText("Nenhuma tarefa para hoje")).toBeVisible();
+    // Scoped to the lists: the calendar and the summary on the same screen have their own empty states.
+    await expect(
+      page.getByRole("region", { name: "Hábitos de hoje" }).getByText("Nenhum hábito para hoje"),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Tarefas de hoje" }).getByText("Nenhuma tarefa para hoje"),
+    ).toBeVisible();
   });
 
   test("logging out ends the session and protects the app again", async ({ page, account }) => {
