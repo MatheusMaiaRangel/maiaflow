@@ -11,6 +11,7 @@ namespace MaiaFlow.Application
         Task<ReadHabitDTO> ChangeRecurrenceRuleAsync(int userId, int habitId, ChangeRecurrenceDTO changeDto);
         Task DeleteHabitAsync(int userId, int habitId);
         Task<List<ReadHabitOccurrenceDTO>> GetCalendarAsync(int userId, DateTime start, DateTime end);
+        Task<ReadHabitStatsDTO> GetStatsAsync(int userId, int days);
         Task<ReadHabitOccurrenceDTO> UpdateOccurrenceStatusAsync(int userId, int occurrenceId, UpdateOccurrenceStatusDTO statusDto);
     }
 }

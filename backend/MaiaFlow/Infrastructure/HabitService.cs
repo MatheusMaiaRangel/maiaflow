@@ -15,6 +15,9 @@ namespace MaiaFlow.Infrastructure
         private const int MaxStartYearsInPast = 2;     // keeps first-time occurrence generation small
         private const int MaxYearsInFuture = 5;
         private const int MaxCalendarYearsInPast = 10;
+        private const int MinStatsDays = 7;
+        private const int MaxStatsDays = 90;
+        private const int StreakLookBackDays = 365;
 
 
         // "Today" is the calendar day in the configured time zone (Brasília), not the UTC day.
@@ -102,12 +105,7 @@ namespace MaiaFlow.Infrastructure
             var today = Today;
             var materializeUpTo = today < end.Date ? today : end.Date;
 
-            // Os dias já passados/hoje existam como Pending no banco
-            foreach (var habit in habits)
-            {
-                if (materializeUpTo >= habit.StartDate.Date)
-                    await GenerateOccurrencesUpToAsync(habit, materializeUpTo);
-            }
+            await MaterializeOccurrencesUpToAsync(habits, materializeUpTo);
 
             var habitsById = habits.ToDictionary(h => h.Id);
 
@@ -138,6 +136,31 @@ namespace MaiaFlow.Infrastructure
             return result.OrderBy(o => o.Date).ThenBy(o => o.HabitId).ToList();
         }
 
+        public async Task<ReadHabitStatsDTO> GetStatsAsync(int userId, int days)
+        {
+            if (days < MinStatsDays || days > MaxStatsDays)
+                throw new DomainValidationException($"O período deve ter entre {MinStatsDays} e {MaxStatsDays} dias.");
+
+            var today = Today;
+            var start = today.AddDays(-(days - 1));
+
+            var habits = await habitRepository.GetByUserIdAsync(userId);
+            await MaterializeOccurrencesUpToAsync(habits, today);
+
+            // One query for the whole streak look-back; the window is a subset of it.
+            var occurrences = await occurrenceRepository.GetByUserIdAndDateRangeAsync(
+                userId, today.AddDays(-(StreakLookBackDays - 1)), today);
+            var byHabit = occurrences.ToLookup(o => o.HabitId);
+
+            var windowOccurrences = habits.SelectMany(h => byHabit[h.Id]).Where(o => o.Date >= start).ToList();
+
+            return new ReadHabitStatsDTO(
+                start,
+                today,
+                BuildStatsDays(windowOccurrences, start, days),
+                habits.Select(h => BuildStatsItem(h, byHabit[h.Id].ToList(), start, today)).ToList());
+        }
+
         public async Task<ReadHabitOccurrenceDTO> UpdateOccurrenceStatusAsync(int userId, int occurrenceId, UpdateOccurrenceStatusDTO statusDto)
         {
             var occurrence = await occurrenceRepository.GetByIdAsync(occurrenceId);
@@ -164,6 +187,49 @@ namespace MaiaFlow.Infrastructure
 
             await occurrenceRepository.UpdateAsync(occurrence);
             return ToOccurrenceDto(occurrence, habit);
+        }
+
+        private static List<ReadHabitStatsDayDTO> BuildStatsDays(List<HabitOccurrence> occurrences, DateTime start, int days)
+        {
+            var byDate = occurrences.ToLookup(o => o.Date.Date);
+            return Enumerable.Range(0, days)
+                .Select(offset => start.AddDays(offset))
+                .Select(date => new ReadHabitStatsDayDTO(
+                    date,
+                    byDate[date].Count(o => o.Status == HabitOccurrenceStatus.Completed),
+                    byDate[date].Count(o => o.Status == HabitOccurrenceStatus.NotCompleted),
+                    byDate[date].Count(o => o.Status == HabitOccurrenceStatus.Pending)))
+                .ToList();
+        }
+
+        private static ReadHabitStatsItemDTO BuildStatsItem(
+            Habit habit, List<HabitOccurrence> lookBack, DateTime start, DateTime today)
+        {
+            var window = lookBack.Where(o => o.Date >= start).ToList();
+            var completed = window.Count(o => o.Status == HabitOccurrenceStatus.Completed);
+            var isTodayPending = window.Any(o => HabitStatistics.IsPendingToday(o, today));
+            var streak = HabitStatistics.CalculateStreak(lookBack, today);
+
+            return new ReadHabitStatsItemDTO(
+                habit.Id,
+                habit.Title,
+                window.Count,
+                completed,
+                window.Count(o => o.Status == HabitOccurrenceStatus.NotCompleted),
+                window.Count(o => o.Status == HabitOccurrenceStatus.Pending),
+                HabitStatistics.CompletionRate(completed, window.Count, isTodayPending),
+                streak.Current,
+                streak.Best);
+        }
+
+        // Past days and today must exist in the database (as Pending) before they are read.
+        private async Task MaterializeOccurrencesUpToAsync(IEnumerable<Habit> habits, DateTime upToDate)
+        {
+            foreach (var habit in habits)
+            {
+                if (upToDate >= habit.StartDate.Date)
+                    await GenerateOccurrencesUpToAsync(habit, upToDate);
+            }
         }
 
         private async Task GenerateOccurrencesUpToAsync(Habit habit, DateTime upToDate)

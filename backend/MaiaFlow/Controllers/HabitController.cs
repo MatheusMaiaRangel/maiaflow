@@ -78,6 +78,18 @@ namespace MaiaFlow.Controllers
             return Ok(await habitService.GetCalendarAsync(UserId, start, end));
         }
 
+        /// <summary>
+        /// Completion history of the last <c>days</c> days (7 to 90, default 30), ending today in Brasília.
+        /// Past occurrences that were never opened are stored first, as <c>/calendar</c> does.
+        /// </summary>
+        [HttpGet("stats")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ReadHabitStatsDTO>(StatusCodes.Status200OK)]
+        public async Task<ActionResult<ReadHabitStatsDTO>> GetStats([FromQuery] int days = 30)
+        {
+            return Ok(await habitService.GetStatsAsync(UserId, days));
+        }
+
         /// <summary>Sets an occurrence to <c>Pending</c>, <c>Completed</c>, or <c>NotCompleted</c>.</summary>
         [HttpPatch("occurrences/{occurrenceId:int}/status")]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
