@@ -435,6 +435,74 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/habits/stats": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Completion history of the last `days` days (7 to 90, default 30), ending today in Brasília.
+     *     Past occurrences that were never opened are stored first, as `/calendar` does.
+     */
+    get: {
+      parameters: {
+        query?: {
+          days?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ReadHabitStatsDTO"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/habits/occurrences/{occurrenceId}/status": {
     parameters: {
       query?: never;
@@ -1261,6 +1329,81 @@ export interface components {
       /** Format: date-time */
       date: string;
       status: components["schemas"]["HabitOccurrenceStatus"];
+    };
+    /** @description Completion history of the user's habits over the last days, ending today (Brasília). */
+    ReadHabitStatsDTO: {
+      /**
+       * Format: date-time
+       * @description First day of the window.
+       */
+      start: string;
+      /**
+       * Format: date-time
+       * @description Last day of the window (today).
+       */
+      end: string;
+      /** @description One entry per day of the window, oldest first, days without occurrences included. */
+      days: components["schemas"]["ReadHabitStatsDayDTO"][];
+      /** @description One entry per habit, in the same order as `GET /api/habits`. */
+      habits: components["schemas"]["ReadHabitStatsItemDTO"][];
+    };
+    /** @description Occurrence counts of one day, across all habits. */
+    ReadHabitStatsDayDTO: {
+      /** Format: date-time */
+      date: string;
+      /** Format: int32 */
+      completed: number;
+      /** Format: int32 */
+      notCompleted: number;
+      /** Format: int32 */
+      pending: number;
+    };
+    /** @description Totals of one habit inside the window, plus its streaks. */
+    ReadHabitStatsItemDTO: {
+      /**
+       * Format: int32
+       * @description Id of the habit.
+       */
+      habitId: number;
+      /** @description Current title of the habit. */
+      habitTitle: string;
+      /**
+       * Format: int32
+       * @description Occurrences inside the window.
+       */
+      scheduled: number;
+      /**
+       * Format: int32
+       * @description Completed occurrences inside the window.
+       */
+      completed: number;
+      /**
+       * Format: int32
+       * @description Occurrences marked as not completed inside the window.
+       */
+      notCompleted: number;
+      /**
+       * Format: int32
+       * @description Occurrences still pending inside the window (today's included).
+       */
+      pending: number;
+      /**
+       * Format: double
+       * @description `Completed / Scheduled`, leaving out today's occurrence while it is still pending;
+       *                 `null` when nothing is left to count.
+       */
+      completionRate: number | null;
+      /**
+       * Format: int32
+       * @description Completed occurrences in a row, counted back from the latest one (looks back up to 365 days);
+       *     today's occurrence does not break it while it is still pending.
+       */
+      currentStreak: number;
+      /**
+       * Format: int32
+       * @description Longest run of completed occurrences in the same 365-day look-back.
+       */
+      bestStreak: number;
     };
     ReadTaskDTO: {
       /** Format: int32 */
