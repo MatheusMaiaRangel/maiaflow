@@ -13,7 +13,8 @@ export default async function Page() {
   return (
     <>
       <PageHeader title="Calendário" description="Seus hábitos dia a dia." />
-      <HabitCalendar today={today} seed={seed} />
+      {/* Keyed by the day so the selected day and month start over after midnight. */}
+      <HabitCalendar key={today} today={today} seed={seed} />
     </>
   );
 }
