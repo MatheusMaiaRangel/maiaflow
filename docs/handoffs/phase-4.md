@@ -129,7 +129,6 @@ Results at the end of the phase: backend 134/134, frontend 435/435 (97% lines), 
   with the same database user it uses for requests. DataProtection keys are not persisted (only matters for
   features that use them; none today).
 - `npm audit` findings in development tooling are unchanged.
-- The CI workflow has not run on GitHub yet: check the first run after the push.
 
 ## Notes for the next phase
 
@@ -138,5 +137,7 @@ Results at the end of the phase: backend 134/134, frontend 435/435 (97% lines), 
 - New API rate limits: tests and the E2E config lift them; if you add a heavy client flow, remember the
   300/min per-user limit.
 - `npm run e2e` rebuilds the web app only when `src/` changed (`E2E_REBUILD=1` forces it).
+- CI is green on GitHub (all four jobs). The first run failed only because `PageProps`/`LayoutProps` are
+  generated into `.next/`, which a clean checkout lacks; `npm run typecheck` now runs `next typegen` first.
 - After changing the API contract, regenerate types with the API running (`npm run api:types`, or
   `OPENAPI_URL=...` for another port).
