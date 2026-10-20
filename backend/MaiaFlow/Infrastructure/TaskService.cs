@@ -5,16 +5,19 @@ using MaiaFlow.Domain.TaskItem;
 
 namespace MaiaFlow.Infrastructure
 {
-    public class TaskService(ITaskRepository repository) : ITaskService
+    public class TaskService(ITaskRepository repository, TimeProvider timeProvider) : ITaskService
     {
         private const int MaxTasksPerUser = 5000;
+
+        // "Today" is the calendar day in the configured time zone (Brasília), not the UTC day.
+        private DateOnly Today => DateOnly.FromDateTime(timeProvider.GetLocalNow().DateTime);
 
         public async Task<ReadTaskDTO> CreateTaskAsync(int userId, CreateTaskDTO createTaskDto)
         {
             if (await repository.CountByUserIdAsync(userId) >= MaxTasksPerUser)
                 throw new DomainValidationException($"Limite de {MaxTasksPerUser} tarefas atingido.");
 
-            var task = TaskItem.Create(createTaskDto.Title, createTaskDto.Description, createTaskDto.DueDate, userId);
+            var task = TaskItem.Create(createTaskDto.Title, createTaskDto.Description, createTaskDto.DueDate, userId, Today);
 
             await repository.AddAsync(task);
 
@@ -58,7 +61,7 @@ namespace MaiaFlow.Infrastructure
             switch (updateStatusDto.Status)
             {
                 case TaskItemStatus.Completed:
-                    task.MarkAsCompleted();
+                    task.MarkAsCompleted(Today);
                     break;
                 case TaskItemStatus.NotCompleted:
                     task.MarkAsNotCompleted();
@@ -90,7 +93,8 @@ namespace MaiaFlow.Infrastructure
 
         private static ReadTaskDTO ToDto(TaskItem task)
         {
-            return new ReadTaskDTO(task.Id, task.Title, task.Description, task.DueDate, task.Status);
+            return new ReadTaskDTO(
+                task.Id, task.Title, task.Description, task.DueDate, task.Status, task.CreatedOn, task.CompletedOn);
         }
     }
 }

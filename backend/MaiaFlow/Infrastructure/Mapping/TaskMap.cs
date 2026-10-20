@@ -19,6 +19,8 @@ namespace MaiaFlow.Infrastructure.Mapping
                 .IsRequired()
                 .HasMaxLength(20);
             builder.Property(t => t.UserId).IsRequired();
+            builder.Property(t => t.CreatedOn).HasColumnType("date");
+            builder.Property(t => t.CompletedOn).HasColumnType("date");
 
             builder.HasOne<Domain.User.User>()
                 .WithMany()

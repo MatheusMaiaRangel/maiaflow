@@ -6,43 +6,75 @@ namespace MaiaFlow.Tests.Domain
 {
     public class TaskItemTests
     {
+        private static readonly DateOnly Today = new(2026, 10, 17);
+
         [Fact]
         public void Create_and_update_apply_the_same_title_rules()
         {
-            var task = TaskItem.Create("a", null, null, 1); // 1 character is valid
+            var task = TaskItem.Create("a", null, null, 1, Today); // 1 character is valid
 
             task.Update("b", null, null);
 
             Assert.Equal("b", task.Title);
-            Assert.Throws<DomainValidationException>(() => TaskItem.Create("  ", null, null, 1));
+            Assert.Throws<DomainValidationException>(() => TaskItem.Create("  ", null, null, 1, Today));
             Assert.Throws<DomainValidationException>(() => task.Update("  ", null, null));
-            Assert.Throws<DomainValidationException>(() => TaskItem.Create(new string('a', 151), null, null, 1));
+            Assert.Throws<DomainValidationException>(() => TaskItem.Create(new string('a', 151), null, null, 1, Today));
             Assert.Throws<DomainValidationException>(() => task.Update(new string('a', 151), null, null));
         }
 
         [Fact]
         public void A_new_task_is_pending_and_status_can_change()
         {
-            var task = TaskItem.Create("Pagar conta", null, null, 1);
+            var task = TaskItem.Create("Pagar conta", null, null, 1, Today);
 
             Assert.Equal(TaskItemStatus.Pending, task.Status);
-            Assert.Equal(TaskItemStatus.Completed, task.MarkAsCompleted().Status);
+            Assert.Equal(TaskItemStatus.Completed, task.MarkAsCompleted(Today).Status);
             Assert.Equal(TaskItemStatus.NotCompleted, task.MarkAsNotCompleted().Status);
             Assert.Equal(TaskItemStatus.Pending, task.MarkAsPending().Status);
+        }
+
+        [Fact]
+        public void A_new_task_records_the_day_it_was_created_and_is_not_completed()
+        {
+            var task = TaskItem.Create("Pagar conta", null, null, 1, Today);
+
+            Assert.Equal(Today, task.CreatedOn);
+            Assert.Null(task.CompletedOn);
+        }
+
+        [Fact]
+        public void Completing_records_the_day_and_completing_again_keeps_the_first_day()
+        {
+            var task = TaskItem.Create("Pagar conta", null, null, 1, Today);
+
+            task.MarkAsCompleted(Today);
+            task.MarkAsCompleted(Today.AddDays(2));
+
+            Assert.Equal(Today, task.CompletedOn);
+        }
+
+        [Fact]
+        public void Leaving_completed_clears_the_completion_day()
+        {
+            var task = TaskItem.Create("Pagar conta", null, null, 1, Today);
+
+            Assert.Null(task.MarkAsCompleted(Today).MarkAsPending().CompletedOn);
+            Assert.Null(task.MarkAsCompleted(Today).MarkAsNotCompleted().CompletedOn);
+            Assert.Equal(Today.AddDays(3), task.MarkAsCompleted(Today.AddDays(3)).CompletedOn);
         }
 
         [Fact]
         public void The_description_has_a_maximum_length_and_blank_means_none()
         {
             Assert.Throws<DomainValidationException>(() =>
-                TaskItem.Create("Tarefa", new string('a', 501), null, 1));
-            Assert.Null(TaskItem.Create("Tarefa", "  ", null, 1).Description);
+                TaskItem.Create("Tarefa", new string('a', 501), null, 1, Today));
+            Assert.Null(TaskItem.Create("Tarefa", "  ", null, 1, Today).Description);
         }
 
         [Fact]
         public void A_task_needs_a_valid_user()
         {
-            Assert.Throws<DomainValidationException>(() => TaskItem.Create("Tarefa", null, null, 0));
+            Assert.Throws<DomainValidationException>(() => TaskItem.Create("Tarefa", null, null, 0, Today));
         }
     }
 

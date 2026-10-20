@@ -14,6 +14,10 @@ namespace MaiaFlow.Domain.TaskItem
         public TaskItemStatus Status { get; private set; }
         public int UserId { get; private set; }
 
+        // Calendar days in Brasília (D15, D25). Tasks created before these columns existed keep both empty.
+        public DateOnly? CreatedOn { get; private set; }
+        public DateOnly? CompletedOn { get; private set; }
+
         // Constructors
         // For EF Core, which sets the properties after construction.
         private TaskItem()
@@ -21,23 +25,24 @@ namespace MaiaFlow.Domain.TaskItem
             Title = null!;
         }
 
-        private TaskItem(string title, string? description, DateTime? dueDate, int userId)
+        private TaskItem(string title, string? description, DateTime? dueDate, int userId, DateOnly createdOn)
         {
             Title = title;
             Description = description;
             DueDate = dueDate;
             UserId = userId;
             Status = TaskItemStatus.Pending;
+            CreatedOn = createdOn;
         }
 
         // Factory Method
-        public static TaskItem Create(string title, string? description, DateTime? dueDate, int userId)
+        public static TaskItem Create(string title, string? description, DateTime? dueDate, int userId, DateOnly today)
         {
             if (userId <= 0)
                 throw new DomainValidationException("A tarefa deve estar vinculada a um usuário válido.");
 
             var (validTitle, validDescription) = Validate(title, description);
-            return new TaskItem(validTitle, validDescription, dueDate, userId);
+            return new TaskItem(validTitle, validDescription, dueDate, userId, today);
         }
 
         public TaskItem Update(string title, string? description, DateTime? dueDate)
@@ -69,8 +74,12 @@ namespace MaiaFlow.Domain.TaskItem
             return (trimmedTitle, string.IsNullOrWhiteSpace(description) ? null : description);
         }
 
-        public TaskItem MarkAsCompleted()
+        // Completing an already completed task keeps the day it was first completed.
+        public TaskItem MarkAsCompleted(DateOnly today)
         {
+            if (Status != TaskItemStatus.Completed)
+                CompletedOn = today;
+
             Status = TaskItemStatus.Completed;
             return this;
         }
@@ -78,12 +87,14 @@ namespace MaiaFlow.Domain.TaskItem
         public TaskItem MarkAsNotCompleted()
         {
             Status = TaskItemStatus.NotCompleted;
+            CompletedOn = null;
             return this;
         }
 
         public TaskItem MarkAsPending()
         {
             Status = TaskItemStatus.Pending;
+            CompletedOn = null;
             return this;
         }
     }
