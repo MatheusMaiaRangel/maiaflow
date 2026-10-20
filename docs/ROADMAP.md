@@ -17,6 +17,8 @@ file first, then the handoff of the last finished phase in [`docs/handoffs/`](ha
 | 3 | Frontend features | Done | [phase-3](handoffs/phase-3.md) |
 | 4 | Quality and delivery | Done | [phase-4](handoffs/phase-4.md) |
 | 5 | Home screen: calendar and dashboards | Done | [phase-5](handoffs/phase-5.md) |
+| 6 | Task history and metrics engine | Done | [phase-6](handoffs/phase-6.md) |
+| 7 | Dashboard builder | Not started | — |
 
 Update this table when a phase starts (`In progress`) and when it ends (`Done`, with a link to its
 handoff).
@@ -99,6 +101,9 @@ Decisions already agreed with the owner. Do not reopen them without asking.
 | D22 | The Content-Security-Policy is built per request in `proxy.ts` with a nonce; the other security headers live in `next.config.ts`. | A nonce cannot be static; Next.js stamps it on its own scripts. |
 | D23 | Docker: API on the aspnet image with tzdata, web as Next.js `standalone`; only the web port is published (127.0.0.1 by default) and the API applies migrations on startup. | One command runs the app; the API stays private behind the BFF (D20). |
 | D24 | `GET /api/habits/stats?days=N` (7–90, default 30) returns the habit history of the last N days ending today in Brasília: per-day counts by status and, per habit, counts, completion rate (today's pending occurrence left out) and current/best streak over a 365-day look-back. Tasks are not included. | The Today dashboards need history the calendar endpoint does not summarize; tasks have no completion date, so including them would need a migration. |
+| D25 | Tasks get `createdOn` and `completedOn` (calendar days in Brasília, D15), both nullable. `completedOn` is set when a task becomes `Completed` and cleared when it leaves that status. Existing tasks keep both empty (no backfill). There is no `/api/tasks/stats` endpoint. | Task history needs real dates; inventing them for old tasks would make the charts lie. The front-end metrics engine (D26) computes task charts from the task list. |
+| D26 | Dashboards are user-built with a guided builder (metric, optional "A ÷ B in %", filter, grouping, period, chart type), not free-typed formulas. Metrics are computed in the browser from the task list and habit occurrences. The four Today cards stay fixed; the area below starts with the default set from the phase 6 mockup and the user can edit, move, resize, recolor (palette plus custom color) or delete it. Split into phase 6 (data and engine) and phase 7 (visual builder). | The owner wants to choose what to see; a guided builder cannot produce invalid formulas and needs no expression parser; client-side metrics avoid one endpoint per chart. |
+| D27 | Dashboard charts use Recharts 3 (bar, line, area, donut); the heatmap, list and number widgets are plain HTML/CSS. Widget colors are CSS variables (`--viz-*` in `globals.css`) with their own light and dark steps (eight hues validated for color-blind separation plus the calendar's status colors) or a `#rrggbb` hex. | Recharts renders SVG with React (no `eval`, no injected `<script>`), so it works under the nonce CSP of D22 (styles already allow inline attributes); CSS variables switch with the theme without re-rendering. |
 
 ## Phases
 
@@ -214,6 +219,56 @@ progress. Idea from the owner (2026-10-14); the layout is not settled, ask befor
       contract with the owner before starting (it adds a decision to the table above).
 
 Done when: the owner approves the new layout, and lint, typecheck, tests, and build pass.
+
+### Phase 6 — Task history and metrics engine
+
+**Goal:** tasks have history, and every Today chart is produced by one metrics engine from a
+configuration, so phase 7 only has to make those configurations editable. Decisions D25 and D26.
+
+- [ ] **Backend:** migration adding `CreatedOn` and `CompletedOn` (nullable `date`) to `tasks`; the domain
+      sets them from the Brasília day (`TimeProvider`); `ReadTaskDTO` exposes `createdOn`/`completedOn`;
+      integration tests (create, complete, reopen, not completed, existing rows stay empty). Regenerate the
+      front-end types.
+- [ ] **Metrics engine** (`frontend/src/lib/metrics/`), pure functions with thorough unit tests:
+      - variables — tasks: created, completed, completed on time, completed late, completed without due
+        date, open pending, open overdue, without due date; habits: scheduled, completed, not completed,
+        pending, completion rate, current streak;
+      - filter: all habits or one habit; grouping: none (total), day, week, weekday, habit;
+      - period: 7, 30, 90 days or a custom range (at most 366 days, the calendar limit);
+      - optional ratio "A ÷ B in %".
+      Data comes from the task list and `/api/habits/calendar`; D24 (`/api/habits/stats`) keeps feeding the
+      fixed cards (its streaks look back 365 days).
+- [ ] **Widget model:** a typed widget configuration (title, metric config, chart type, period, colors,
+      grid position and size) plus a renderer per chart type (bar, line, area, donut, number, heatmap,
+      list). Pick one chart library (must work under the CSP of D22 and in dark mode) and record it.
+- [ ] **Default dashboard** below the four fixed cards, built from configurations, as in the approved
+      mockup: Tarefas (concluídas por dia, no prazo, situação, próximos 7 dias), Hábitos (últimos 30 dias,
+      por hábito — the phase 5 charts), Tendências (mapa de 90 dias, por dia da semana). Loading, empty
+      and error states in each widget; one column on phones.
+- [ ] Unit tests (80%+), E2E for the new Today sections.
+
+Done when: the owner approves the new charts with real data, and lint, typecheck, tests, E2E and build
+pass.
+
+### Phase 7 — Dashboard builder
+
+**Goal:** each user builds their own dashboard below the fixed cards (D26).
+
+- [ ] **Persistence:** save each user's widget configurations in the API so they follow the user to any
+      device (new table and CRUD under `/api/dashboard`, validated on the server: known metric/chart
+      values, hex colors, size limits, ownership). Contract to be agreed with the owner at the start of
+      the phase (it adds a decision).
+- [ ] **Editor:** add, edit and delete widgets with the guided builder (metric, optional ratio, filter,
+      grouping, period, chart type, title); live preview.
+- [ ] **Colors:** card background and chart colors from a palette that works in light and dark mode, plus
+      a custom color (hex) with a contrast warning.
+- [ ] **Layout:** drag to move and resize on desktop (grid library chosen at the start of the phase, with
+      keyboard alternatives); on phones a single column where widgets can only be reordered. "Restaurar
+      padrão" brings back the phase 6 default set.
+- [ ] Unit, integration and E2E tests; code and security review.
+
+Done when: the owner builds, edits, moves and deletes widgets and they persist across devices, and all
+checks pass.
 
 ## Known issues found during the initial review
 
