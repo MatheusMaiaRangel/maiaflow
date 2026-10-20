@@ -1405,14 +1405,34 @@ export interface components {
        */
       bestStreak: number;
     };
+    /** @description A task of the signed-in user. */
     ReadTaskDTO: {
-      /** Format: int32 */
+      /**
+       * Format: int32
+       * @description Id of the task.
+       */
       id: number;
+      /** @description Title of the task. */
       title: string;
+      /** @description Optional description. */
       description: string | null;
-      /** Format: date-time */
+      /**
+       * Format: date-time
+       * @description Optional due day.
+       */
       dueDate: string | null;
       status: components["schemas"]["TaskItemStatus"];
+      /**
+       * Format: date
+       * @description Day the task was created (Brasília); null for tasks created before it was recorded.
+       */
+      createdOn: string | null;
+      /**
+       * Format: date
+       * @description Day the task was completed (Brasília); null unless the status is Completed, and also
+       *                 null for tasks completed before it was recorded.
+       */
+      completedOn: string | null;
     };
     ReadUserDTO: {
       name: string;

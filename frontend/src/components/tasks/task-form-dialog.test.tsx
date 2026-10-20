@@ -23,6 +23,8 @@ const existing: Task = {
   description: "Capítulo 3",
   dueDate: "2026-10-20T00:00:00",
   status: "Pending",
+  createdOn: null,
+  completedOn: null,
 };
 
 const ok = (data: unknown) => ({ data, response: { ok: true, status: 200 } });

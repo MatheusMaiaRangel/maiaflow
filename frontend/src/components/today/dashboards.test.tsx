@@ -22,7 +22,15 @@ function occurrence(id: number, status: Occurrence["status"] = "Pending"): Occur
 }
 
 function task(id: number, dueDate: string | null, status: Task["status"] = "Pending"): Task {
-  return { id, title: `Tarefa ${id}`, description: null, dueDate, status };
+  return {
+    id,
+    title: `Tarefa ${id}`,
+    description: null,
+    dueDate,
+    status,
+    createdOn: null,
+    completedOn: null,
+  };
 }
 
 function item(

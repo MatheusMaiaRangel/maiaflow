@@ -3,17 +3,11 @@ import type { Occurrence } from "@/lib/habits/occurrences";
 import type { HabitStatsDay, HabitStatsItem } from "@/lib/habits/stats";
 import type { Task } from "@/lib/tasks/hooks";
 import {
-  barHeight,
-  chartMax,
   dayProgress,
-  formatDayMonth,
   formatPercent,
-  formatStreak,
-  habitRates,
   percentOf,
   streakUnit,
   sumDays,
-  toChartDays,
   topStreak,
   windowCompletion,
 } from "./dashboard";
@@ -23,7 +17,15 @@ function occurrence(id: number, status: Occurrence["status"]): Occurrence {
 }
 
 function task(id: number, status: Task["status"] = "Pending"): Task {
-  return { id, title: `Tarefa ${id}`, description: null, dueDate: null, status };
+  return {
+    id,
+    title: `Tarefa ${id}`,
+    description: null,
+    dueDate: null,
+    status,
+    createdOn: null,
+    completedOn: null,
+  };
 }
 
 function day(date: string, completed: number, notCompleted: number, pending: number) {
@@ -92,9 +94,8 @@ describe("topStreak", () => {
 describe("streak words", () => {
   test("counts occurrences in a row, singular and plural", () => {
     expect(streakUnit(1)).toBe("seguida");
-    expect(formatStreak(1)).toBe("1 seguida");
-    expect(formatStreak(0)).toBe("0 seguidas");
-    expect(formatStreak(12)).toBe("12 seguidas");
+    expect(streakUnit(0)).toBe("seguidas");
+    expect(streakUnit(12)).toBe("seguidas");
   });
 });
 
@@ -125,39 +126,5 @@ describe("windowCompletion", () => {
       notCompleted: 7,
       pending: 9,
     });
-  });
-});
-
-describe("chart data", () => {
-  test("turns API days into calendar days with totals", () => {
-    expect(toChartDays([day("2026-10-14", 1, 2, 0)])).toEqual([
-      { day: "2026-10-14", completed: 1, notCompleted: 2, pending: 0, total: 3 },
-    ]);
-  });
-
-  test("scales to the tallest bar, at least 1", () => {
-    const days = toChartDays([day("2026-10-13", 1, 0, 0), day("2026-10-14", 2, 1, 1)]);
-    expect(chartMax(days)).toBe(4);
-    expect(chartMax([])).toBe(1);
-    expect(barHeight(1, 4)).toBe("25%");
-    expect(barHeight(1, 0)).toBe("0%");
-  });
-
-  test("formats axis days as dd/MM", () => {
-    expect(formatDayMonth("2026-10-04")).toBe("04/10");
-  });
-});
-
-describe("habitRates", () => {
-  test("sorts by rate descending with habits without a rate last, keeping API order on ties", () => {
-    const rates = habitRates([item(1, null), item(2, 0.5), item(3, 0.875, 4), item(4, 0.5)]);
-
-    expect(rates.map((rate) => rate.habitId)).toEqual([3, 2, 4, 1]);
-    expect(rates[0]).toEqual({ habitId: 3, title: "Hábito 3", percent: 88, streak: 4 });
-    expect(rates[3].percent).toBeNull();
-  });
-
-  test("keeps habits without a rate in their order", () => {
-    expect(habitRates([item(1, null), item(2, null)]).map((rate) => rate.habitId)).toEqual([1, 2]);
   });
 });

@@ -33,6 +33,8 @@ const first: Task = {
   description: null,
   dueDate: null,
   status: "Pending",
+  createdOn: null,
+  completedOn: null,
 };
 const second: Task = {
   id: 2,
@@ -40,6 +42,8 @@ const second: Task = {
   description: null,
   dueDate: null,
   status: "Pending",
+  createdOn: null,
+  completedOn: null,
 };
 
 let queryClient: QueryClient;
@@ -115,13 +119,15 @@ describe("useSetTaskStatus", () => {
     queryClient.setQueryData(TASKS_KEY, [first]);
     let release: (value: unknown) => void = () => {};
     api.PATCH.mockReturnValue(new Promise((resolve) => (release = resolve)));
-    api.GET.mockResolvedValue(ok([{ ...first, status: "Completed" }]));
+    api.GET.mockResolvedValue(
+      ok([{ ...first, status: "Completed", createdOn: null, completedOn: null }]),
+    );
     const { result } = renderHook(() => useSetTaskStatus(), { wrapper });
 
     act(() => result.current.mutate({ id: 1, status: "Completed" }));
 
     await waitFor(() => expect(cached()?.[0]?.status).toBe("Completed"));
-    release(ok({ ...first, status: "Completed" }));
+    release(ok({ ...first, status: "Completed", createdOn: null, completedOn: null }));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   });
 
@@ -136,6 +142,24 @@ describe("useSetTaskStatus", () => {
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Tarefa não encontrada."));
     expect(cached()).toEqual([first]);
   });
+
+  it("clears the completion day right away when a task leaves Completed and restores it on failure", async () => {
+    const done: Task = { ...first, status: "Completed", completedOn: "2026-10-15" };
+    queryClient.setQueryData(TASKS_KEY, [done]);
+    let reject: (value: unknown) => void = () => {};
+    api.PATCH.mockReturnValue(new Promise((resolve) => (reject = resolve)));
+    api.GET.mockResolvedValue(ok([done]));
+    const { result } = renderHook(() => useSetTaskStatus(), { wrapper });
+
+    act(() => result.current.mutate({ id: 1, status: "Pending" }));
+
+    await waitFor(() =>
+      expect(cached()?.[0]).toMatchObject({ status: "Pending", completedOn: null }),
+    );
+    reject(fail(500, { detail: "Erro." }));
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(cached()).toEqual([done]);
+  });
 });
 
 describe("concurrent status changes", () => {
@@ -146,15 +170,27 @@ describe("concurrent status changes", () => {
     api.PATCH.mockReturnValueOnce(
       new Promise((resolve) => (rejectFirst = resolve)),
     ).mockReturnValueOnce(new Promise((resolve) => (resolveSecond = resolve)));
-    api.GET.mockResolvedValue(ok([first, { ...second, status: "Completed" }]));
+    api.GET.mockResolvedValue(
+      ok([first, { ...second, status: "Completed", createdOn: null, completedOn: null }]),
+    );
     // An active observer, so invalidation really refetches.
     renderHook(() => useTasks(), { wrapper });
     const hook1 = renderHook(() => useSetTaskStatus(), { wrapper });
     const hook2 = renderHook(() => useSetTaskStatus(), { wrapper });
 
-    act(() => hook1.result.current.mutate({ id: 1, status: "Completed" }));
+    act(() =>
+      hook1.result.current.mutate({
+        id: 1,
+        status: "Completed",
+      }),
+    );
     await waitFor(() => expect(cached()?.[0]?.status).toBe("Completed"));
-    act(() => hook2.result.current.mutate({ id: 2, status: "Completed" }));
+    act(() =>
+      hook2.result.current.mutate({
+        id: 2,
+        status: "Completed",
+      }),
+    );
     await waitFor(() => expect(cached()?.[1]?.status).toBe("Completed"));
 
     rejectFirst(fail(500, { detail: "Erro." }));
@@ -163,7 +199,7 @@ describe("concurrent status changes", () => {
     expect(cached()?.map((task) => task.status)).toEqual(["Pending", "Completed"]);
     expect(api.GET).not.toHaveBeenCalled();
 
-    resolveSecond(ok({ ...second, status: "Completed" }));
+    resolveSecond(ok({ ...second, status: "Completed", createdOn: null, completedOn: null }));
     await waitFor(() => expect(api.GET).toHaveBeenCalledOnce());
   });
 });

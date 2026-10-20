@@ -6,7 +6,15 @@ import { habitProgress, selectTodayTasks, taskProgress } from "./today";
 const TODAY = "2026-10-14";
 
 function task(id: number, dueDate: string | null, status: Task["status"] = "Pending"): Task {
-  return { id, title: `Tarefa ${id}`, description: null, dueDate, status };
+  return {
+    id,
+    title: `Tarefa ${id}`,
+    description: null,
+    dueDate,
+    status,
+    createdOn: null,
+    completedOn: null,
+  };
 }
 
 function occurrence(id: number, status: Occurrence["status"]): Occurrence {

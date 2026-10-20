@@ -10,6 +10,8 @@ function task(overrides: Partial<Task> & { id: number }): Task {
     description: null,
     dueDate: null,
     status: "Pending",
+    createdOn: null,
+    completedOn: null,
     ...overrides,
   };
 }
@@ -45,9 +47,9 @@ describe("sortTasks", () => {
 describe("filterTasks and countTasks", () => {
   const tasks = [
     task({ id: 1 }),
-    task({ id: 2, status: "Completed" }),
-    task({ id: 3, status: "Completed" }),
-    task({ id: 4, status: "NotCompleted" }),
+    task({ id: 2, status: "Completed", createdOn: null, completedOn: null }),
+    task({ id: 3, status: "Completed", createdOn: null, completedOn: null }),
+    task({ id: 4, status: "NotCompleted", createdOn: null, completedOn: null }),
   ];
 
   it("filters by status and keeps everything for 'all'", () => {
@@ -85,7 +87,17 @@ describe("dueState", () => {
 
   it("is never overdue once the task is completed or not completed", () => {
     const past = "2026-10-01T00:00:00";
-    expect(dueState(task({ id: 1, dueDate: past, status: "Completed" }), TODAY)).toBe("later");
-    expect(dueState(task({ id: 1, dueDate: past, status: "NotCompleted" }), TODAY)).toBe("later");
+    expect(
+      dueState(
+        task({ id: 1, dueDate: past, status: "Completed", createdOn: null, completedOn: null }),
+        TODAY,
+      ),
+    ).toBe("later");
+    expect(
+      dueState(
+        task({ id: 1, dueDate: past, status: "NotCompleted", createdOn: null, completedOn: null }),
+        TODAY,
+      ),
+    ).toBe("later");
   });
 });

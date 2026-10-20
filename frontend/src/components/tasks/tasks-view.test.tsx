@@ -20,16 +20,42 @@ import { TasksView } from "./tasks-view";
 const TODAY = "2026-10-14";
 
 const tasks: Task[] = [
-  { id: 1, title: "Sem prazo", description: null, dueDate: null, status: "Pending" },
+  {
+    id: 1,
+    title: "Sem prazo",
+    description: null,
+    dueDate: null,
+    status: "Pending",
+    createdOn: null,
+    completedOn: null,
+  },
   {
     id: 2,
     title: "Atrasada demais",
     description: null,
     dueDate: "2026-10-01T00:00:00",
     status: "Pending",
+    createdOn: null,
+    completedOn: null,
   },
-  { id: 3, title: "Feita", description: null, dueDate: null, status: "Completed" },
-  { id: 4, title: "Deixei pra lá", description: null, dueDate: null, status: "NotCompleted" },
+  {
+    id: 3,
+    title: "Feita",
+    description: null,
+    dueDate: null,
+    status: "Completed",
+    createdOn: null,
+    completedOn: null,
+  },
+  {
+    id: 4,
+    title: "Deixei pra lá",
+    description: null,
+    dueDate: null,
+    status: "NotCompleted",
+    createdOn: null,
+    completedOn: null,
+  },
 ];
 
 const ok = (data: unknown) => ({ data, response: { ok: true, status: 200 } });
@@ -112,6 +138,8 @@ describe("TasksView create and edit", () => {
       description: null,
       dueDate: null,
       status: "Pending",
+      createdOn: null,
+      completedOn: null,
     };
     api.POST.mockResolvedValue(ok(created));
     api.GET.mockResolvedValue(ok([...tasks, created]));

@@ -66,8 +66,8 @@ export function useUpdateTask() {
 }
 
 /**
- * Changes the status right away; if the API refuses it puts back only that task's previous status (other
- * pending changes stay) and shows an error toast.
+ * Changes the status right away; if the API refuses it puts back only that task's previous status and
+ * completion day (other pending changes stay) and shows an error toast.
  */
 export function useSetTaskStatus() {
   const queryClient = useQueryClient();
@@ -82,19 +82,24 @@ export function useSetTaskStatus() {
       ),
     onMutate: async ({ id, status }) => {
       await queryClient.cancelQueries({ queryKey: TASKS_KEY });
-      const previousStatus = queryClient
-        .getQueryData<Task[]>(TASKS_KEY)
-        ?.find((task) => task.id === id)?.status;
+      const previous = queryClient.getQueryData<Task[]>(TASKS_KEY)?.find((task) => task.id === id);
+      // Leaving "Completed" clears the completion day (D25); the server sets it when completing.
       queryClient.setQueryData<Task[]>(TASKS_KEY, (tasks) =>
-        tasks?.map((task) => (task.id === id ? { ...task, status } : task)),
+        tasks?.map((task) =>
+          task.id === id
+            ? { ...task, status, completedOn: status === "Completed" ? task.completedOn : null }
+            : task,
+        ),
       );
-      return { previousStatus };
+      return {
+        previous: previous && { status: previous.status, completedOn: previous.completedOn },
+      };
     },
     onError: (error, { id }, context) => {
-      const previousStatus = context?.previousStatus;
-      if (previousStatus) {
+      const previous = context?.previous;
+      if (previous) {
         queryClient.setQueryData<Task[]>(TASKS_KEY, (tasks) =>
-          tasks?.map((task) => (task.id === id ? { ...task, status: previousStatus } : task)),
+          tasks?.map((task) => (task.id === id ? { ...task, ...previous } : task)),
         );
       }
       toast.error(errorMessage(error, "Não foi possível atualizar a tarefa."));

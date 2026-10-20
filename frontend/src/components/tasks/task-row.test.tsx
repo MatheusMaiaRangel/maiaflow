@@ -22,6 +22,8 @@ const baseTask: Task = {
   description: null,
   dueDate: null,
   status: "Pending",
+  createdOn: null,
+  completedOn: null,
 };
 
 function renderRow(props: Partial<Omit<TaskRowProps, "task">> & { task?: Partial<Task> } = {}) {
@@ -38,7 +40,7 @@ function renderRow(props: Partial<Omit<TaskRowProps, "task">> & { task?: Partial
 
 beforeEach(() => {
   api.PATCH.mockReset().mockResolvedValue({
-    data: { ...baseTask, status: "Completed" },
+    data: { ...baseTask, status: "Completed", createdOn: null, completedOn: null },
     response: { ok: true, status: 200 },
   });
 });
@@ -69,7 +71,14 @@ describe("TaskRow content", () => {
   });
 
   it("does not flag a completed task as late and strikes the title through", () => {
-    renderRow({ task: { dueDate: "2026-10-01T00:00:00", status: "Completed" } });
+    renderRow({
+      task: {
+        dueDate: "2026-10-01T00:00:00",
+        status: "Completed",
+        createdOn: null,
+        completedOn: null,
+      },
+    });
 
     expect(screen.queryByText(/Atrasada/)).not.toBeInTheDocument();
     expect(screen.getByText("01/10/2026")).toBeInTheDocument();
@@ -78,7 +87,7 @@ describe("TaskRow content", () => {
   });
 
   it("shows the status of a task marked as not completed", () => {
-    renderRow({ task: { status: "NotCompleted" } });
+    renderRow({ task: { status: "NotCompleted", createdOn: null, completedOn: null } });
 
     expect(screen.getByText("Não concluída")).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "Pagar conta de luz" })).not.toBeChecked();
@@ -100,7 +109,7 @@ describe("TaskRow checkbox", () => {
   });
 
   it("sends a completed task back to pending", async () => {
-    renderRow({ task: { status: "Completed" } });
+    renderRow({ task: { status: "Completed", createdOn: null, completedOn: null } });
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Pagar conta de luz" }));
 
@@ -164,7 +173,7 @@ describe("TaskRow actions menu", () => {
   });
 
   it("offers to reopen a task that was marked as not completed", async () => {
-    renderRow({ task: { status: "NotCompleted" } });
+    renderRow({ task: { status: "NotCompleted", createdOn: null, completedOn: null } });
 
     await openMenu();
     await userEvent.click(await screen.findByRole("menuitem", { name: /Marcar como pendente/ }));
