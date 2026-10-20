@@ -2,7 +2,6 @@
  * Numbers of the Today dashboards ("Resumo"). Pure functions over data the screen already has: today's
  * occurrences and tasks, and the completion history of `GET /api/habits/stats`.
  */
-import { dateOnly, formatDateShort, type DateOnly } from "@/lib/dates";
 import type { Occurrence } from "@/lib/habits/occurrences";
 import type { HabitStatsDay, HabitStatsItem } from "@/lib/habits/stats";
 import { habitProgress, taskProgress, type TodayTasks } from "@/lib/today";
@@ -56,16 +55,6 @@ export function streakUnit(streak: number): string {
   return streak === 1 ? "seguida" : "seguidas";
 }
 
-/** "1 seguida", "12 seguidas". */
-export function formatStreak(streak: number): string {
-  return `${streak} ${streakUnit(streak)}`;
-}
-
-/** "14/10", for chart axes and tables. */
-export function formatDayMonth(day: DateOnly): string {
-  return formatDateShort(day).slice(0, 5);
-}
-
 export type StatusTotals = { completed: number; notCompleted: number; pending: number };
 
 export function sumDays(days: readonly HabitStatsDay[]): StatusTotals {
@@ -90,51 +79,4 @@ export function windowCompletion(days: readonly HabitStatsDay[]): Ratio {
     totals.completed,
     totals.completed + totals.notCompleted + totals.pending - todayPending,
   );
-}
-
-export type ChartDay = StatusTotals & { day: DateOnly; total: number };
-
-/** One bar per day of the window, oldest first. */
-export function toChartDays(days: readonly HabitStatsDay[]): ChartDay[] {
-  return days.map((day) => ({
-    day: dateOnly(day.date),
-    completed: day.completed,
-    notCompleted: day.notCompleted,
-    pending: day.pending,
-    total: day.completed + day.notCompleted + day.pending,
-  }));
-}
-
-/** The tallest bar (at least 1, so empty windows still scale). */
-export function chartMax(days: readonly ChartDay[]): number {
-  return Math.max(1, ...days.map((day) => day.total));
-}
-
-/** Share of `value` in `max`, as a CSS percentage. */
-export function barHeight(value: number, max: number): string {
-  return `${max > 0 ? (value / max) * 100 : 0}%`;
-}
-
-export type HabitRate = {
-  habitId: number;
-  title: string;
-  /** Rounded completion rate, or `null` when there is nothing to count yet. */
-  percent: number | null;
-  streak: number;
-};
-
-function byRateDescending(a: HabitStatsItem, b: HabitStatsItem): number {
-  if (a.completionRate === null) return b.completionRate === null ? 0 : 1;
-  if (b.completionRate === null) return -1;
-  return b.completionRate - a.completionRate;
-}
-
-/** One row per habit, best completion rate first and habits with no rate last (ties keep API order). */
-export function habitRates(habits: readonly HabitStatsItem[]): HabitRate[] {
-  return habits.toSorted(byRateDescending).map((habit) => ({
-    habitId: habit.habitId,
-    title: habit.habitTitle,
-    percent: habit.completionRate === null ? null : Math.round(habit.completionRate * 100),
-    streak: habit.currentStreak,
-  }));
 }

@@ -25,7 +25,7 @@ export function calendarKey(start: DateOnly, end: DateOnly) {
   return [...CALENDAR_KEY, start, end] as const;
 }
 
-async function fetchOccurrences(start: DateOnly, end: DateOnly): Promise<Occurrence[]> {
+export async function fetchOccurrences(start: DateOnly, end: DateOnly): Promise<Occurrence[]> {
   return apiData(
     await getBrowserApi().GET("/api/habits/calendar", { params: { query: { start, end } } }),
   );

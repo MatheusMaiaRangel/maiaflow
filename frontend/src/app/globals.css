@@ -81,6 +81,19 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Dashboard widget palette (lib/widgets/colors.ts): eight hues validated for color-blind separation,
+     plus the calendar's status colors. Dark mode has its own steps. */
+  --viz-blue: #2a78d6;
+  --viz-orange: #eb6834;
+  --viz-aqua: #1baf7a;
+  --viz-yellow: #eda100;
+  --viz-magenta: #e87ba4;
+  --viz-green: #008300;
+  --viz-violet: #6250d6;
+  --viz-red: #e34948;
+  --viz-done: #059669;
+  --viz-missed: #e11d48;
+  --viz-pending: oklch(0.556 0 0 / 30%);
 }
 
 .dark {
@@ -115,6 +128,17 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --viz-blue: #3987e5;
+  --viz-orange: #d95926;
+  --viz-aqua: #199e70;
+  --viz-yellow: #c98500;
+  --viz-magenta: #d55181;
+  --viz-green: #008300;
+  --viz-violet: #9085e9;
+  --viz-red: #e66767;
+  --viz-done: #10b981;
+  --viz-missed: #f43f5e;
+  --viz-pending: oklch(0.708 0 0 / 30%);
 }
 
 @layer base {

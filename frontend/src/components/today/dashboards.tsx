@@ -1,21 +1,14 @@
 "use client";
 
-import { ChartColumnIcon } from "lucide-react";
-import Link from "next/link";
-import { useId, type ReactNode } from "react";
-import { EmptyState } from "@/components/empty-state";
-import { buttonVariants } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useId } from "react";
+import { DashboardView } from "@/components/widgets/dashboard-view";
 import { DASHBOARD_DAYS } from "@/lib/dashboard";
 import type { DateOnly } from "@/lib/dates";
 import { useOccurrences, type Occurrence } from "@/lib/habits/occurrences";
 import { useHabitStats, type HabitStats } from "@/lib/habits/stats";
 import type { ServerSeed } from "@/lib/query-seed";
 import { useTasks, type Task } from "@/lib/tasks/hooks";
-import { DailyChart } from "./daily-chart";
-import { HabitRatesChart } from "./habit-rates-chart";
-import { hasFailed, type QueryState } from "./query-state";
-import { SectionError } from "./section-states";
+import { DEFAULT_DASHBOARD } from "@/lib/widgets/default-dashboard";
 import { StatCards } from "./stat-cards";
 
 type DashboardsProps = {
@@ -28,8 +21,9 @@ type DashboardsProps = {
 };
 
 /**
- * "Resumo": four stat cards and two charts. Today's progress comes from the lists already on screen (same
- * queries, no extra request); the rest from the completion history of the last days.
+ * "Resumo": the four fixed stat cards, then the dashboard of widgets (D26; phase 6 shows the default set).
+ * The cards use the lists already on screen and the completion history of `/api/habits/stats` (D24); the
+ * widgets are computed by the metrics engine from the task list and the habit calendar.
  */
 export function Dashboards({ today, tasksSeed, occurrencesSeed, statsSeed }: DashboardsProps) {
   const headingId = useId();
@@ -43,74 +37,7 @@ export function Dashboards({ today, tasksSeed, occurrencesSeed, statsSeed }: Das
         Resumo
       </h2>
       <StatCards today={today} occurrences={occurrences} tasks={tasks} stats={stats} />
-      <Charts stats={stats} />
-    </section>
-  );
-}
-
-function Charts({ stats }: { stats: QueryState<HabitStats> }) {
-  if (stats.data?.habits.length === 0) {
-    return (
-      <EmptyState
-        icon={ChartColumnIcon}
-        title="Nada para mostrar ainda"
-        description="Crie um hábito para acompanhar aqui seu histórico e suas sequências."
-        action={
-          <Link href="/habits" className={buttonVariants({ variant: "outline" })}>
-            Criar hábito
-          </Link>
-        }
-      />
-    );
-  }
-
-  return (
-    <div className="grid min-w-0 gap-4 lg:grid-cols-2">
-      <ChartPanel
-        title={`Últimos ${DASHBOARD_DAYS} dias`}
-        loadingLabel={`Carregando o histórico dos últimos ${DASHBOARD_DAYS} dias`}
-        stats={stats}
-      >
-        {(data) => <DailyChart days={data.days} />}
-      </ChartPanel>
-      <ChartPanel title="Por hábito" loadingLabel="Carregando a conclusão por hábito" stats={stats}>
-        {(data) => <HabitRatesChart habits={data.habits} />}
-      </ChartPanel>
-    </div>
-  );
-}
-
-function ChartPanel({
-  title,
-  loadingLabel,
-  stats,
-  children,
-}: {
-  title: string;
-  loadingLabel: string;
-  stats: QueryState<HabitStats>;
-  children: (data: HabitStats) => ReactNode;
-}) {
-  const headingId = useId();
-  const body = (() => {
-    if (hasFailed(stats)) {
-      return <SectionError what="o histórico" onRetry={() => stats.refetch()} />;
-    }
-    if (!stats.data) {
-      return <Skeleton role="status" aria-label={loadingLabel} className="h-48 w-full" />;
-    }
-    return children(stats.data);
-  })();
-
-  return (
-    <section
-      aria-labelledby={headingId}
-      className="grid min-w-0 content-start gap-4 rounded-xl border bg-card p-4"
-    >
-      <h3 id={headingId} className="font-medium">
-        {title}
-      </h3>
-      {body}
+      <DashboardView config={DEFAULT_DASHBOARD} today={today} tasksSeed={tasksSeed} />
     </section>
   );
 }

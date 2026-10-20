@@ -116,12 +116,36 @@ function card(name: string) {
   return screen.getByRole("group", { name });
 }
 
+function widget(name: string) {
+  return screen.getByRole("region", { name });
+}
+
+function dated(habitId: number, habitTitle: string, date: string, status: Occurrence["status"]) {
+  return {
+    id: habitId * 100 + Number(date.slice(8)),
+    habitId,
+    habitTitle,
+    date: `${date}T00:00:00`,
+    status,
+  };
+}
+
+/** Two habits over the last three days (today's "Ler" still pending). */
+const HISTORY: Occurrence[] = [
+  dated(1, "Ler", "2026-10-12", "Completed"),
+  dated(1, "Ler", "2026-10-13", "NotCompleted"),
+  dated(1, "Ler", TODAY, "Pending"),
+  dated(3, "Meditar", "2026-10-13", "Completed"),
+  dated(3, "Meditar", TODAY, "Completed"),
+];
+
 beforeEach(() => {
   get.mockReset();
 });
 
 describe("Dashboards", () => {
-  it("is a region named Resumo with the four cards and two charts", () => {
+  it("is a region named Resumo with the four cards", () => {
+    get.mockReturnValue(new Promise(() => {}));
     renderDashboards({ stats: STATS });
 
     const summary = screen.getByRole("region", { name: "Resumo" });
@@ -133,8 +157,6 @@ describe("Dashboards", () => {
     ]) {
       expect(within(summary).getByRole("group", { name })).toBeInTheDocument();
     }
-    expect(within(summary).getByRole("region", { name: "Últimos 30 dias" })).toBeInTheDocument();
-    expect(within(summary).getByRole("region", { name: "Por hábito" })).toBeInTheDocument();
   });
 
   it("shows today's progress of habits and tasks, rounded", () => {
@@ -207,46 +229,78 @@ describe("Dashboards", () => {
     expect(card("Conclusão em 30 dias")).toHaveTextContent("Nada para contar ainda");
   });
 
-  it("draws the last days as an image with a summary and a table of the numbers", () => {
+  it("shows the default dashboard below the cards: Tarefas, Hábitos and Tendências", () => {
+    get.mockReturnValue(new Promise(() => {}));
     renderDashboards({ stats: STATS });
 
-    const chart = screen.getByRole("region", { name: "Últimos 30 dias" });
-    expect(
-      within(chart).getByRole("img", {
-        name: "Últimos 3 dias: 3 feitos, 1 não feito, 2 pendentes",
-      }),
-    ).toBeInTheDocument();
-    // On the axis and in the table.
-    expect(within(chart).getAllByText("12/10")).toHaveLength(2);
-    expect(
-      within(chart).getByTitle("14/10: 1 feito, 0 não feitos, 2 pendentes"),
-    ).toBeInTheDocument();
-    const table = within(chart).getByRole("table", { hidden: true });
-    expect(within(table).getAllByRole("row", { hidden: true })).toHaveLength(4);
+    const summary = screen.getByRole("region", { name: "Resumo" });
+    const sections = {
+      Tarefas: ["Concluídas por dia", "No prazo", "Situação", "Próximos 7 dias"],
+      Hábitos: ["Últimos 30 dias", "Por hábito"],
+      Tendências: ["Mapa de 90 dias", "Por dia da semana"],
+    };
+    for (const [section, widgets] of Object.entries(sections)) {
+      const region = within(summary).getByRole("region", { name: section });
+      for (const widget of widgets) {
+        expect(within(region).getByRole("region", { name: widget })).toBeInTheDocument();
+      }
+    }
   });
 
-  it("lists every habit by completion rate, rounded, with no rate last", () => {
+  it("computes the task widgets from the task list", () => {
+    get.mockReturnValue(new Promise(() => {}));
+    renderDashboards({
+      stats: STATS,
+      tasks: [
+        { ...task(1, "2026-10-14T00:00:00", "Completed"), completedOn: TODAY },
+        { ...task(2, "2026-10-10T00:00:00", "Completed"), completedOn: "2026-10-12" },
+        task(3, "2026-10-01T00:00:00"),
+        task(4, null),
+      ],
+    });
+
+    expect(widget("No prazo")).toHaveTextContent("50%");
+    expect(widget("No prazo")).toHaveTextContent("Concluídas no prazo: 1 de 2");
+    expect(within(widget("Situação")).getByRole("img")).toHaveAccessibleName(
+      "Situação: No prazo: 0 no total. Atrasadas: 1 no total. Sem prazo: 1 no total. Concluídas em 30 dias: 2 no total.",
+    );
+  });
+
+  it("loads the habit history once from the calendar and lists every habit by completion rate", async () => {
+    get.mockImplementation((path: string) =>
+      Promise.resolve(path === "/api/habits/calendar" ? ok(HISTORY) : ok(STATS)),
+    );
     renderDashboards({ stats: STATS });
 
-    const list = within(screen.getByRole("region", { name: "Por hábito" })).getByRole("list", {
-      name: "Conclusão por hábito",
-    });
-    const rows = within(list).getAllByRole("listitem");
-    expect(rows.map((row) => row.textContent)).toEqual([
-      "Meditar83%Sequência atual: 12 seguidas",
-      "Ler67%Sequência atual: 1 seguida",
-      "Correr—Sequência atual: 0 seguidas",
+    const list = await within(widget("Por hábito")).findByRole("list", { name: "Por hábito" });
+    expect(
+      within(list)
+        .getAllByRole("listitem")
+        .map((row) => row.textContent),
+    ).toEqual([
+      "MeditarConclusão: 100%Sequência atual: 2 seguidas",
+      "LerConclusão: 50%Sequência atual: 0 seguidas",
+    ]);
+    const calendarCalls = get.mock.calls.filter(([path]) => path === "/api/habits/calendar");
+    expect(calendarCalls).toEqual([
+      ["/api/habits/calendar", { params: { query: { start: "2025-10-15", end: TODAY } } }],
     ]);
   });
 
-  it("invites to create a habit when there are none", () => {
+  it("invites to look at tasks or habits when a widget has nothing to show", async () => {
+    get.mockResolvedValue(ok([]));
     renderDashboards({ stats: EMPTY_STATS });
 
-    expect(screen.getByText("Nada para mostrar ainda")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Criar hábito" })).toHaveAttribute("href", "/habits");
-    expect(screen.queryByRole("region", { name: "Por hábito" })).not.toBeInTheDocument();
+    expect(
+      within(widget("Concluídas por dia")).getByRole("link", { name: "Ver tarefas" }),
+    ).toHaveAttribute("href", "/tasks");
+    const habits = widget("Últimos 30 dias");
+    expect(await within(habits).findByRole("link", { name: "Ver hábitos" })).toHaveAttribute(
+      "href",
+      "/habits",
+    );
+    expect(habits).toHaveTextContent("Nada para mostrar neste período ainda.");
     expect(card("Maior sequência")).toHaveTextContent("Nenhum hábito ainda");
-    expect(card("Conclusão em 30 dias")).toHaveTextContent("—");
   });
 
   it("shows skeletons while the history loads without a server seed", () => {
@@ -255,28 +309,30 @@ describe("Dashboards", () => {
 
     expect(screen.getByRole("status", { name: "Carregando sequências" })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "Carregando conclusão" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("status", { name: "Carregando o histórico dos últimos 30 dias" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("status", { name: "Carregando a conclusão por hábito" }),
-    ).toBeInTheDocument();
+    for (const name of ["Últimos 30 dias", "Por hábito", "Mapa de 90 dias", "Por dia da semana"]) {
+      expect(screen.getByRole("status", { name: `Carregando ${name}` })).toBeInTheDocument();
+    }
     expect(get).toHaveBeenCalledWith("/api/habits/stats", { params: { query: { days: 30 } } });
   });
 
-  it("shows an error with a retry that refetches the history", async () => {
-    get.mockResolvedValueOnce(failure());
-    renderDashboards();
+  it("shows an error with a retry in the habit widgets when the history cannot be read", async () => {
+    get.mockImplementation((path: string) =>
+      Promise.resolve(path === "/api/habits/calendar" ? failure() : ok(STATS)),
+    );
+    renderDashboards({ stats: STATS });
 
-    const chart = screen.getByRole("region", { name: "Por hábito" });
-    const alert = await within(chart).findByRole("alert");
-    expect(alert).toHaveTextContent("Não foi possível carregar o histórico");
-    expect(card("Maior sequência")).toHaveTextContent("Não foi possível carregar o histórico");
+    const alert = await within(widget("Por hábito")).findByRole("alert");
+    expect(alert).toHaveTextContent("Não foi possível carregar os hábitos");
+    expect(within(widget("Mapa de 90 dias")).getByRole("alert")).toBeInTheDocument();
 
-    get.mockResolvedValueOnce(ok(STATS));
+    get.mockImplementation((path: string) =>
+      Promise.resolve(path === "/api/habits/calendar" ? ok(HISTORY) : ok(STATS)),
+    );
     await userEvent.click(within(alert).getByRole("button", { name: "Tentar novamente" }));
 
-    await waitFor(() => expect(card("Maior sequência")).toHaveTextContent("12 seguidas"));
+    expect(
+      await within(widget("Por hábito")).findByRole("list", { name: "Por hábito" }),
+    ).toBeInTheDocument();
   });
 
   it("shows an error in the task cards when the tasks cannot be read", async () => {
