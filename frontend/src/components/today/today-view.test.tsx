@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Occurrence } from "@/lib/habits/occurrences";
 import type { HabitStats } from "@/lib/habits/stats";
 import type { Task } from "@/lib/tasks/hooks";
+import { DEFAULT_DASHBOARD } from "@/lib/widgets/default-dashboard";
 import { TodayView } from "./today-view";
 
 const getBrowserApi = vi.fn();
@@ -67,6 +68,10 @@ function renderView(tasks: Task[], occurrences: Occurrence[]) {
       occurrencesSeed={{ data: occurrences, fetchedAt }}
       calendarSeed={{ data: occurrences, fetchedAt }}
       statsSeed={{ data: stats(occurrences), fetchedAt }}
+      dashboardSeed={{
+        data: { revision: 0, config: DEFAULT_DASHBOARD, isDefault: true },
+        fetchedAt,
+      }}
     />,
     { wrapper },
   );

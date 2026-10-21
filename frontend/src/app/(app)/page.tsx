@@ -5,7 +5,7 @@ import { fetchTodaySeed } from "@/lib/today-server";
 export const metadata: Metadata = { title: "Hoje" };
 
 export default async function Page() {
-  const { today, tasks, occurrences, calendar, stats } = await fetchTodaySeed();
+  const { today, tasks, occurrences, calendar, stats, dashboard } = await fetchTodaySeed();
   return (
     <TodayView
       today={today}
@@ -13,6 +13,7 @@ export default async function Page() {
       occurrencesSeed={occurrences}
       calendarSeed={calendar}
       statsSeed={stats}
+      dashboardSeed={dashboard}
     />
   );
 }

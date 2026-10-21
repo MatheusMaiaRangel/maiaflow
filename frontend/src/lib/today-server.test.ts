@@ -35,12 +35,18 @@ const GRID = [
 ];
 const STATS = { start: "2026-09-15T00:00:00", end: "2026-10-14T00:00:00", days: [], habits: [] };
 
-function answer({ stats = ok(STATS) as unknown }: { stats?: unknown } = {}) {
+const DASHBOARD = { revision: 3, config: null };
+
+function answer({
+  stats = ok(STATS) as unknown,
+  dashboard = ok(DASHBOARD) as unknown,
+}: { stats?: unknown; dashboard?: unknown } = {}) {
   get.mockImplementation(async (path: string) => {
     if (path === "/api/tasks") return ok(TASKS);
     if (path === "/api/habits/calendar") return ok(GRID);
-    if (stats instanceof Error) throw stats;
-    return stats;
+    const result = path === "/api/dashboard" ? dashboard : stats;
+    if (result instanceof Error) throw result;
+    return result;
   });
 }
 
@@ -62,7 +68,8 @@ describe("fetchTodaySeed", () => {
 
     const seed = await fetchTodaySeed();
 
-    expect(get).toHaveBeenCalledTimes(3);
+    expect(get).toHaveBeenCalledTimes(4);
+    expect(get).toHaveBeenCalledWith("/api/dashboard");
     expect(get).toHaveBeenCalledWith("/api/tasks");
     expect(get).toHaveBeenCalledWith("/api/habits/calendar", {
       params: { query: { start: "2026-09-27", end: "2026-10-31" } },
@@ -72,6 +79,18 @@ describe("fetchTodaySeed", () => {
     expect(seed.tasks).toEqual({ data: TASKS, fetchedAt: NOW.getTime() });
     expect(seed.calendar.data).toEqual(GRID);
     expect(seed.stats).toEqual({ data: STATS, fetchedAt: NOW.getTime() });
+    expect(seed.dashboard?.data).toMatchObject({ revision: 3, isDefault: true });
+  });
+
+  test("leaves the dashboard to the client when its call fails or cannot be made", async () => {
+    answer({ dashboard: failed(500) });
+    expect((await fetchTodaySeed()).dashboard).toBeUndefined();
+
+    answer({ dashboard: new TypeError("fetch failed") });
+    expect((await fetchTodaySeed()).dashboard).toBeUndefined();
+    expect(console.warn).toHaveBeenCalledWith(
+      "Dashboard for the Today screen could not be reached",
+    );
   });
 
   test("seeds today's habits list with today's slice of the grid", async () => {

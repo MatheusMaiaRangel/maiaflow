@@ -2,7 +2,7 @@
 
 import { ChartColumnIcon } from "lucide-react";
 import Link from "next/link";
-import { useId, type CSSProperties } from "react";
+import { useId, type CSSProperties, type ReactNode } from "react";
 import { SectionError } from "@/components/today/section-states";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -96,27 +96,59 @@ function Body({ widget, state }: { widget: WidgetConfig; state: WidgetState }) {
   }
 }
 
+type WidgetCardProps = {
+  widget: WidgetConfig;
+  state: WidgetState;
+  /** Buttons shown next to the title (the editor's edit and delete). */
+  actions?: ReactNode;
+  /** Something before the title (the editor's drag handle). */
+  leading?: ReactNode;
+  /**
+   * A fixed chart height in pixels: the card fills its container (the editor's grid and the preview)
+   * instead of placing itself in the section grid.
+   */
+  chartHeight?: number;
+};
+
+function fillStyle(widget: WidgetConfig, chartHeight: number): CSSProperties {
+  return {
+    "--chart-h": `${chartHeight}px`,
+    ...(widget.background ? { backgroundColor: mixColor(widget.background, 14) } : {}),
+  } as CSSProperties;
+}
+
 /**
  * One widget of the dashboard: a card with its title and period, and loading, error and empty states of
  * its own. One column on phones, two on tablets, its configured place on wide screens.
  */
-export function WidgetCard({ widget, state }: { widget: WidgetConfig; state: WidgetState }) {
+export function WidgetCard({ widget, state, actions, leading, chartHeight }: WidgetCardProps) {
   const headingId = useId();
+  const fills = chartHeight !== undefined;
   return (
     <section
       aria-labelledby={headingId}
-      style={gridStyle(widget)}
+      style={fills ? fillStyle(widget, chartHeight) : gridStyle(widget)}
       className={cn(
         "grid min-w-0 content-start gap-3 rounded-xl border bg-card p-4",
-        "[--chart-h:12rem] sm:[grid-column:span_var(--w-sm)]",
-        "lg:[grid-column:var(--x)/span_var(--w)] lg:[grid-row:var(--y)/span_var(--h)] lg:[--chart-h:var(--chart-h-lg)]",
+        fills
+          ? "h-full overflow-hidden"
+          : [
+              "[--chart-h:12rem] sm:[grid-column:span_var(--w-sm)]",
+              "lg:[grid-column:var(--x)/span_var(--w)] lg:[grid-row:var(--y)/span_var(--h)] lg:[--chart-h:var(--chart-h-lg)]",
+            ],
       )}
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h3 id={headingId} className="font-medium">
-          {widget.title}
-        </h3>
-        <p className="text-xs text-muted-foreground">{formatPeriod(widget.period)}</p>
+        <div className="flex min-w-0 items-center gap-2">
+          {leading}
+          <h3 id={headingId} className="min-w-0 font-medium break-words">
+            {widget.title}
+          </h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-muted-foreground">{formatPeriod(widget.period)}</p>
+          {actions}
+        </div>
       </header>
       <Body widget={widget} state={state} />
     </section>

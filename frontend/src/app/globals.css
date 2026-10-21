@@ -152,3 +152,48 @@
     @apply font-sans;
   }
 }
+
+/*
+ * react-grid-layout (D29), the dashboard editor's grid. Written here instead of importing the package's
+ * stylesheet, so the placeholder follows the theme and motion can be turned off.
+ */
+@layer components {
+  .react-grid-layout {
+    position: relative;
+    transition: height 200ms ease;
+  }
+  .react-grid-item {
+    transition-property: transform, width, height;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+  }
+  .react-grid-item.resizing,
+  .react-grid-item.react-draggable-dragging {
+    z-index: 3;
+    transition: none;
+    will-change: transform, width, height;
+  }
+  .react-grid-item.react-grid-placeholder {
+    z-index: 2;
+    border: 2px dashed var(--primary);
+    border-radius: var(--radius-xl);
+    background: color-mix(in oklab, var(--primary) 10%, transparent);
+    transition-duration: 100ms;
+    user-select: none;
+  }
+  .react-grid-item.react-grid-placeholder.placeholder-resizing {
+    transition: none;
+  }
+  .react-grid-item > .react-resizable-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    cursor: se-resize;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .react-grid-layout,
+    .react-grid-item {
+      transition: none;
+    }
+  }
+}

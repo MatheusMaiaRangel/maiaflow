@@ -17,6 +17,7 @@ import type { Occurrence } from "@/lib/habits/occurrences";
 import type { HabitStats } from "@/lib/habits/stats";
 import type { ServerSeed } from "@/lib/query-seed";
 import { useTasks, type Task } from "@/lib/tasks/hooks";
+import type { Dashboard } from "@/lib/widgets/stored";
 import { habitProgress, selectTodayTasks, taskProgress, type Progress } from "@/lib/today";
 import { Dashboards } from "./dashboards";
 import { ListSkeleton, SectionError } from "./section-states";
@@ -31,6 +32,8 @@ type TodayViewProps = {
   calendarSeed: ServerSeed<Occurrence[]>;
   /** Missing when the server could not read it; the dashboards then fetch it themselves. */
   statsSeed?: ServerSeed<HabitStats>;
+  /** Missing when the server could not read it; the dashboard then fetches it itself. */
+  dashboardSeed?: ServerSeed<Dashboard>;
 };
 
 function capitalize(text: string): string {
@@ -186,6 +189,7 @@ export function TodayView({
   occurrencesSeed,
   calendarSeed,
   statsSeed,
+  dashboardSeed,
 }: TodayViewProps) {
   return (
     <>
@@ -206,6 +210,7 @@ export function TodayView({
           tasksSeed={tasksSeed}
           occurrencesSeed={occurrencesSeed}
           statsSeed={statsSeed}
+          dashboardSeed={dashboardSeed}
         />
       </div>
     </>

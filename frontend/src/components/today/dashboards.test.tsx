@@ -7,6 +7,7 @@ import type { Occurrence } from "@/lib/habits/occurrences";
 import type { HabitStats, HabitStatsItem } from "@/lib/habits/stats";
 import type { ServerSeed } from "@/lib/query-seed";
 import type { Task } from "@/lib/tasks/hooks";
+import { DEFAULT_DASHBOARD } from "@/lib/widgets/default-dashboard";
 import { Dashboards } from "./dashboards";
 
 const get = vi.fn();
@@ -63,6 +64,8 @@ const STATS: HabitStats = {
   habits: [item(1, "Ler", 0.6667, 1), item(2, "Correr", null, 0), item(3, "Meditar", 0.8333, 12)],
 };
 
+const DEFAULT_SEED = { revision: 0, config: DEFAULT_DASHBOARD, isDefault: true };
+
 const EMPTY_STATS: HabitStats = { ...STATS, days: [], habits: [] };
 
 type Seeds = {
@@ -85,6 +88,7 @@ function renderDashboards({ tasks = [], occurrences = [], stats }: Seeds = {}) {
       tasksSeed={seed(tasks)}
       occurrencesSeed={seed(occurrences)}
       statsSeed={stats ? seed(stats) : undefined}
+      dashboardSeed={seed(DEFAULT_SEED)}
     />,
     { wrapper },
   );
@@ -101,6 +105,7 @@ function renderWithoutTasksSeed() {
         today={TODAY}
         occurrencesSeed={{ data: [], fetchedAt: Date.now() }}
         statsSeed={{ data: STATS, fetchedAt: Date.now() }}
+        dashboardSeed={{ data: DEFAULT_SEED, fetchedAt: Date.now() }}
       />
     </QueryClientProvider>,
   );
