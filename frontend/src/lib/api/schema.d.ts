@@ -4,6 +4,176 @@
  */
 
 export interface paths {
+  "/api/dashboard": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Reads the dashboard. `config` is `null` (revision 0 when never saved) to use the
+     *                 front end's default.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["DashboardDTO"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+      };
+    };
+    /**
+     * Replaces the whole dashboard and returns it with its new revision. Answers 409 when the
+     *                 revision sent is not the stored one (another device saved first); nothing is changed then.
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": components["schemas"]["SaveDashboardDTO"];
+          "text/json": components["schemas"]["SaveDashboardDTO"];
+          "application/*+json": components["schemas"]["SaveDashboardDTO"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["DashboardDTO"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Content Too Large */
+        413: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+      };
+    };
+    post?: never;
+    /**
+     * "Restaurar padrão": clears the saved dashboard and bumps the revision, so other devices
+     *                 holding the old one get 409 on their next save. Without a saved dashboard it does nothing.
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/habits": {
     parameters: {
       query?: never;
@@ -1284,6 +1454,132 @@ export interface components {
       email: string;
       password: string;
     };
+    /** @description The whole dashboard of a user: its sections, in order. */
+    DashboardConfigDTO: {
+      /**
+       * Format: int32
+       * @description Format version. Only `1` exists.
+       */
+      version: number;
+      /** @description At most 8 sections, with at most 30 widgets in total. */
+      sections: components["schemas"]["DashboardSectionDTO"][];
+    };
+    /** @description The signed-in user's dashboard (D28). */
+    DashboardDTO: {
+      /**
+       * Format: int32
+       * @description Changes on every save; send it back on `PUT`. `0` when the user never
+       *                 saved a dashboard.
+       */
+      revision: number;
+      config: components["schemas"]["DashboardConfigDTO"] | null;
+    };
+    /** @description Which habits the habit variables look at; task variables ignore it. */
+    DashboardHabitFilterDTO: {
+      /** @description `all` or `habit`. */
+      kind: string;
+      /**
+       * Format: int32
+       * @description `habit` only: id of the habit (any positive id; a deleted habit just shows
+       *                 nothing). Omitted otherwise.
+       */
+      habitId?: number | null;
+    };
+    /** @description Position and size in grid cells: `x` 0–3 and `x + w` ≤ 4, `y` 0–50, `h` 1–4. */
+    DashboardLayoutDTO: {
+      /**
+       * Format: int32
+       * @description First column, 0-based.
+       */
+      x: number;
+      /**
+       * Format: int32
+       * @description First row, 0-based.
+       */
+      y: number;
+      /**
+       * Format: int32
+       * @description Width in columns.
+       */
+      w: number;
+      /**
+       * Format: int32
+       * @description Height in rows.
+       */
+      h: number;
+    };
+    /** @description A variable, or "variable ÷ divideBy in %" when `divideBy` is set (both must be counts). */
+    DashboardMetricDTO: {
+      /** @description Such as `tasks.completed` or `habits.completionRate`. */
+      variable: string;
+      /** @description Divisor variable for a ratio. Omitted when not set. */
+      divideBy?: string | null;
+    };
+    /**
+     * @description `last`: the last `days` days ending today. `next`: today and the next `days` − 1 days.
+     *                 `custom`: `from` to `to`, both included, at most 366 days.
+     */
+    DashboardPeriodDTO: {
+      /** @description `last`, `next` or `custom`. */
+      kind: string;
+      /**
+       * Format: int32
+       * @description `last` and `next` only: 7, 30 or 90. Omitted otherwise.
+       */
+      days?: number | null;
+      /** @description `custom` only: first day, `yyyy-MM-dd`. Omitted otherwise. */
+      from?: string | null;
+      /** @description `custom` only: last day, `yyyy-MM-dd`. Omitted otherwise. */
+      to?: string | null;
+    };
+    /** @description A titled group of widgets laid out on a 4-column grid. */
+    DashboardSectionDTO: {
+      /** @description Unique in the dashboard; 1 to 40 of `a-z`, `0-9` and `-`. */
+      id: string;
+      /** @description 1 to 40 characters, not counting surrounding spaces. */
+      title: string;
+      /** @description Widgets of the section; they may not overlap each other. */
+      widgets: components["schemas"]["DashboardWidgetDTO"][];
+    };
+    /** @description One metric of a widget and how it is drawn. */
+    DashboardSeriesDTO: {
+      metric: components["schemas"]["DashboardMetricDTO"];
+      /** @description Name shown in legends; 1 to 40 characters. */
+      label: string;
+      /**
+       * @description A palette name (`blue`, `orange`, `aqua`, `yellow`, `magenta`,
+       *                 `green`, `violet`, `red`, `done`, `missed`, `pending`) or `#rrggbb`.
+       */
+      color: string;
+      /**
+       * @description Bar, line and area charts: draw this series as `bar`, `line` or `area`
+       *                 instead. Omitted when not set.
+       */
+      mark?: string | null;
+    };
+    /** @description One chart, number or list of the dashboard. */
+    DashboardWidgetDTO: {
+      /** @description Unique in the whole dashboard; 1 to 40 of `a-z`, `0-9` and `-`. */
+      id: string;
+      /** @description 1 to 60 characters, not counting surrounding spaces. */
+      title: string;
+      /**
+       * @description `bar`, `line`, `area`, `donut`, `number`, `heatmap` or
+       *                 `list`.
+       */
+      chart: string;
+      /** @description 1 to 6 metrics drawn by the widget. */
+      series: components["schemas"]["DashboardSeriesDTO"][];
+      /** @description `none`, `day`, `week`, `weekday` or `habit`. */
+      grouping: string;
+      period: components["schemas"]["DashboardPeriodDTO"];
+      habitFilter: components["schemas"]["DashboardHabitFilterDTO"];
+      /** @description Bar and area charts: stack the series (counts only). Omitted when not set. */
+      stacked?: boolean | null;
+      /** @description Tint of the card (a palette name or `#rrggbb`). Omitted when not set. */
+      background?: string | null;
+      layout: components["schemas"]["DashboardLayoutDTO"];
+    };
     /** @enum {string} */
     HabitFrequencyType:
       "Daily" | "Weekly" | "Monthly" | "Yearly" | "IntervalDays" | "SpecificDaysOfWeek";
@@ -1437,6 +1733,16 @@ export interface components {
     ReadUserDTO: {
       name: string;
       email: string;
+    };
+    /** @description Replaces the whole dashboard of the signed-in user. */
+    SaveDashboardDTO: {
+      /**
+       * Format: int32
+       * @description The revision the client last read (`0` when it never saw a saved one). When
+       *                 another device saved since, the API answers 409 and nothing changes.
+       */
+      revision: number;
+      config: components["schemas"]["DashboardConfigDTO"];
     };
     /** @enum {string} */
     TaskItemStatus: "Pending" | "NotCompleted" | "Completed";

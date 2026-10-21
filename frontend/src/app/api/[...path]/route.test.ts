@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/env", () => ({ env: { API_URL: "http://api.test" } }));
 
-import { DELETE, GET, PATCH, POST } from "./route";
+import { DELETE, GET, PATCH, POST, PUT } from "./route";
 
 function jwt(expOffsetSeconds = 3600): string {
   const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
@@ -82,6 +82,28 @@ describe("BFF proxy", () => {
     const init = fetchMock.mock.calls[0]![1];
     expect(init.method).toBe("POST");
     expect(Buffer.from(init.body).toString()).toBe('{"title":"Nova"}');
+  });
+
+  it("forwards a same-origin PUT (the dashboard is saved whole) and refuses one from another origin", async () => {
+    fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
+
+    const saved = await PUT(
+      request("dashboard", {
+        method: "PUT",
+        headers: { origin: "http://localhost:3000", "content-type": "application/json" },
+        body: JSON.stringify({ revision: 0 }),
+      }),
+      context("dashboard"),
+    );
+    const foreign = await PUT(
+      request("dashboard", { method: "PUT", headers: { origin: "https://evil.test" }, body: "{}" }),
+      context("dashboard"),
+    );
+
+    expect(saved.status).toBe(200);
+    expect(fetchMock.mock.calls[0]![1].method).toBe("PUT");
+    expect(foreign.status).toBe(403);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("passes 204 through without a body", async () => {
