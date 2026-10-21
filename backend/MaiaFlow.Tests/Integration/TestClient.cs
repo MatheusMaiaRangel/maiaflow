@@ -42,6 +42,9 @@ namespace MaiaFlow.Tests.Integration
         public static Task<HttpResponseMessage> PatchJsonAsync(this HttpClient client, string url, string json) =>
             client.PatchAsync(url, new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
 
+        public static Task<HttpResponseMessage> PutJsonAsync(this HttpClient client, string url, string json) =>
+            client.PutAsync(url, new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
+
         public static Task<HttpResponseMessage> PostJsonAsync(this HttpClient client, string url, string json) =>
             client.PostAsync(url, new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
 

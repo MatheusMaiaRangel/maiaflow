@@ -5,6 +5,7 @@ using MaiaFlow.Application;
 using MaiaFlow.Domain.User;
 using MaiaFlow.Domain.TaskItem;
 using MaiaFlow.Domain.Habit;
+using MaiaFlow.Domain.Dashboard;
 using MaiaFlow.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -121,6 +122,8 @@ namespace MaiaFlow
             builder.Services.AddScoped<IHabitRepository, HabitRepository>();
             builder.Services.AddScoped<IHabitOccurrenceRepository, HabitOccurrenceRepository>();
             builder.Services.AddScoped<IHabitService, HabitService>();
+            builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+            builder.Services.AddScoped<IDashboardService, DashboardService>();
             var app = builder.Build();
             if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
             {

@@ -17,6 +17,7 @@ namespace MaiaFlow.Infrastructure
         private const string UniqueViolationSqlState = "23505";
         private const string ForeignKeyViolationSqlState = "23503";
         private const string DuplicateMessage = "Já existe um registro com esses dados.";
+        private const string InvalidSessionMessage = "Sessão inválida. Entre novamente.";
         private const string UnexpectedMessage = "Ocorreu um erro inesperado. Tente novamente.";
 
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception,
@@ -51,7 +52,10 @@ namespace MaiaFlow.Infrastructure
                 => (StatusCodes.Status409Conflict, DuplicateMessage),
             // The row points to something that no longer exists, typically a deleted user with a still-valid token.
             DbUpdateException { InnerException: PostgresException { SqlState: ForeignKeyViolationSqlState } }
-                => (StatusCodes.Status401Unauthorized, "Sessão inválida. Entre novamente."),
+                => (StatusCodes.Status401Unauthorized, InvalidSessionMessage),
+            // The same from raw SQL (the dashboard's INSERT ... ON CONFLICT), which is not wrapped by EF.
+            PostgresException { SqlState: ForeignKeyViolationSqlState }
+                => (StatusCodes.Status401Unauthorized, InvalidSessionMessage),
             _ => (StatusCodes.Status500InternalServerError, UnexpectedMessage)
         };
     }

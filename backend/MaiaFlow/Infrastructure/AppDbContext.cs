@@ -1,6 +1,7 @@
 using MaiaFlow.Domain.User;
 using MaiaFlow.Domain.TaskItem;
 using MaiaFlow.Domain.Habit;
+using MaiaFlow.Domain.Dashboard;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -13,6 +14,7 @@ namespace MaiaFlow.Infrastructure
         public DbSet<Habit> habits { get; set; }
         public DbSet<HabitRecurrenceRule> habit_recurrence_rules { get; set; }
         public DbSet<HabitOccurrence> habit_occurrences { get; set; }
+        public DbSet<Dashboard> dashboards { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -28,6 +30,7 @@ namespace MaiaFlow.Infrastructure
             modelBuilder.ApplyConfiguration<Habit>(new Mapping.HabitMap());
             modelBuilder.ApplyConfiguration<HabitRecurrenceRule>(new Mapping.HabitRecurrenceRuleMap());
             modelBuilder.ApplyConfiguration<HabitOccurrence>(new Mapping.HabitOccurrenceMap());
+            modelBuilder.ApplyConfiguration<Dashboard>(new Mapping.DashboardMap());
 
             // Postgres "timestamp without time zone" não aceita nenhum Kind marcado no DateTime.
             // Esses conversores forçam Kind = Unspecified tanto ao salvar quanto ao ler,

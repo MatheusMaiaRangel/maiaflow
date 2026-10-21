@@ -22,6 +22,29 @@ namespace MaiaFlow.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("MaiaFlow.Domain.Dashboard.Dashboard", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("Config")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("config");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("dashboards", (string)null);
+                });
+
             modelBuilder.Entity("MaiaFlow.Domain.Habit.Habit", b =>
                 {
                     b.Property<int>("Id")
@@ -196,6 +219,15 @@ namespace MaiaFlow.Migrations
                         .IsUnique();
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("MaiaFlow.Domain.Dashboard.Dashboard", b =>
+                {
+                    b.HasOne("MaiaFlow.Domain.User.User", null)
+                        .WithOne()
+                        .HasForeignKey("MaiaFlow.Domain.Dashboard.Dashboard", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MaiaFlow.Domain.Habit.Habit", b =>

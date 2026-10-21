@@ -1,0 +1,6768 @@
+{
+  "description": "Dashboard configurations both validators must agree on (D28): the front end (src/lib/widgets) and the API (DashboardValidator). Each case is a whole DashboardConfig as sent to PUT /api/dashboard.",
+  "cases": [
+    {
+      "name": "default dashboard",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "tasks",
+            "title": "Tarefas",
+            "widgets": [
+              {
+                "id": "tasks-per-day",
+                "title": "Concluídas por dia",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.created"
+                    },
+                    "label": "Criadas",
+                    "color": "orange",
+                    "mark": "line"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 2
+                }
+              },
+              {
+                "id": "tasks-on-time",
+                "title": "No prazo",
+                "chart": "number",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completedOnTime",
+                      "divideBy": "tasks.completedWithDueDate"
+                    },
+                    "label": "Concluídas no prazo",
+                    "color": "aqua"
+                  }
+                ],
+                "grouping": "none",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 2,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "tasks-status",
+                "title": "Situação",
+                "chart": "donut",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.openPending"
+                    },
+                    "label": "No prazo",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.openOverdue"
+                    },
+                    "label": "Atrasadas",
+                    "color": "orange"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.openWithoutDueDate"
+                    },
+                    "label": "Sem prazo",
+                    "color": "aqua"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas em 30 dias",
+                    "color": "violet"
+                  }
+                ],
+                "grouping": "none",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 3,
+                  "y": 0,
+                  "w": 1,
+                  "h": 2
+                }
+              },
+              {
+                "id": "tasks-next-7-days",
+                "title": "Próximos 7 dias",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.openPending"
+                    },
+                    "label": "Com prazo no dia",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "next",
+                  "days": 7
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 2,
+                  "y": 1,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "habits",
+            "title": "Hábitos",
+            "widgets": [
+              {
+                "id": "habits-last-30-days",
+                "title": "Últimos 30 dias",
+                "chart": "bar",
+                "stacked": true,
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed"
+                    },
+                    "label": "Feitos",
+                    "color": "done"
+                  },
+                  {
+                    "metric": {
+                      "variable": "habits.notCompleted"
+                    },
+                    "label": "Não feitos",
+                    "color": "missed"
+                  },
+                  {
+                    "metric": {
+                      "variable": "habits.pending"
+                    },
+                    "label": "Pendentes",
+                    "color": "pending"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 2
+                }
+              },
+              {
+                "id": "habits-per-habit",
+                "title": "Por hábito",
+                "chart": "list",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Conclusão",
+                    "color": "done"
+                  },
+                  {
+                    "metric": {
+                      "variable": "habits.currentStreak"
+                    },
+                    "label": "Sequência atual",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "habit",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 2,
+                  "y": 0,
+                  "w": 2,
+                  "h": 2
+                }
+              }
+            ]
+          },
+          {
+            "id": "trends",
+            "title": "Tendências",
+            "widgets": [
+              {
+                "id": "trends-90-day-map",
+                "title": "Mapa de 90 dias",
+                "chart": "heatmap",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Conclusão dos hábitos",
+                    "color": "done"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 90
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              },
+              {
+                "id": "trends-weekday",
+                "title": "Por dia da semana",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Conclusão dos hábitos",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "weekday",
+                "period": {
+                  "kind": "last",
+                  "days": 90
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 2,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "no sections",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": []
+      }
+    },
+    {
+      "name": "empty section",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "minimal bar chart",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "hex colors in any case",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "#A1b2C3"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                },
+                "background": "#0f0f0f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "palette background",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                },
+                "background": "done"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "custom period of 366 days",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "custom",
+                  "from": "2024-01-01",
+                  "to": "2024-12-31"
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "custom period of one day",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "custom",
+                  "from": "2025-03-01",
+                  "to": "2025-03-01"
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "next 7 days",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "next",
+                  "days": 7
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "last 90 days",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 90
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ratio as a number",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "number",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completedOnTime",
+                      "divideBy": "tasks.completedWithDueDate"
+                    },
+                    "label": "Taxa",
+                    "color": "aqua"
+                  }
+                ],
+                "grouping": "none",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ratio between habit counts by week",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "line",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed",
+                      "divideBy": "habits.scheduled"
+                    },
+                    "label": "Taxa",
+                    "color": "aqua"
+                  }
+                ],
+                "grouping": "week",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "one habit",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "habit",
+                  "habitId": 5
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "donut by weekday",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "donut",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "weekday",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "donut by habit",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "donut",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "habit",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "donut with two totals",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "donut",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.openPending"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.openOverdue"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "none",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "heatmap by day",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "heatmap",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "list by habit with rate and streak",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "list",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "habits.currentStreak"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "habit",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "list by day",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "list",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.created"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "stacked counts",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "habits.notCompleted"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                },
+                "stacked": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "stacked flag ignored on a list",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "list",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "habit",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                },
+                "stacked": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "line over bars",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.created"
+                    },
+                    "label": "Série",
+                    "color": "blue",
+                    "mark": "line"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "area mark",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "area",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue",
+                    "mark": "area"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "streak as a number",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "number",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.currentStreak"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "none",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "percent line by week",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "line",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "week",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "habit grouping with habit variables",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "habit",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "largest layout values",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 3,
+                  "y": 50,
+                  "w": 1,
+                  "h": 4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "full width",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 4,
+                  "h": 4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "title of 60 characters",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "title with spaces around",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "  Gráfico  ",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "label of 40 characters",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "llllllllllllllllllllllllllllllllllllllll",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "six series",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "30 widgets",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s0",
+            "title": "Seção 0",
+            "widgets": [
+              {
+                "id": "w0",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 1,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w2",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 2,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w3",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 3,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w4",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 4,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w5",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 5,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w6",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 6,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w7",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 7,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w8",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 8,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w9",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 9,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "s1",
+            "title": "Seção 1",
+            "widgets": [
+              {
+                "id": "w10",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w11",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 1,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w12",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 2,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w13",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 3,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w14",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 4,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w15",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 5,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w16",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 6,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w17",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 7,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w18",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 8,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w19",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 9,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "s2",
+            "title": "Seção 2",
+            "widgets": [
+              {
+                "id": "w20",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w21",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 1,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w22",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 2,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w23",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 3,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w24",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 4,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w25",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 5,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w26",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 6,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w27",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 7,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w28",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 8,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w29",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 9,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "8 sections",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s0",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s2",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s3",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s4",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s5",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s6",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s7",
+            "title": "Seção",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "widgets side by side",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w2",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 2,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "widgets stacked",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 2
+                }
+              },
+              {
+                "id": "w2",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 2,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "same place in different sections",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "s2",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w2",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "section id of 40 characters",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "title": "Seção",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "optional fields null",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed",
+                      "divideBy": null
+                    },
+                    "label": "A",
+                    "color": "blue",
+                    "mark": null
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                },
+                "stacked": null,
+                "background": null
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown properties are ignored",
+      "valid": true,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                },
+                "extra": 1
+              }
+            ]
+          }
+        ],
+        "extra": true
+      }
+    },
+    {
+      "name": "version 2",
+      "valid": false,
+      "config": {
+        "version": 2,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing version",
+      "valid": false,
+      "config": {
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "sections not a list",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": {}
+      }
+    },
+    {
+      "name": "9 sections",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s0",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s2",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s3",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s4",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s5",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s6",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s7",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s8",
+            "title": "Seção",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "31 widgets",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s0",
+            "title": "Seção 0",
+            "widgets": [
+              {
+                "id": "w0",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 1,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w2",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 2,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w3",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 3,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w4",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 4,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w5",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 5,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w6",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 6,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w7",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 7,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w8",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 8,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w9",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 9,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w10",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 10,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "s1",
+            "title": "Seção 1",
+            "widgets": [
+              {
+                "id": "w11",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w12",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 1,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w13",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 2,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w14",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 3,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w15",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 4,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w16",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 5,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w17",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 6,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w18",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 7,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w19",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 8,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w20",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 9,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w21",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 10,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "s2",
+            "title": "Seção 2",
+            "widgets": [
+              {
+                "id": "w22",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w23",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 1,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w24",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 2,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w25",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 3,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w26",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 4,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w27",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 5,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w28",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 6,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w29",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 7,
+                  "w": 1,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w30",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 8,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "section id with capitals",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "Tasks",
+            "title": "Seção",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "section id empty",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "",
+            "title": "Seção",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "section id of 41 characters",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "title": "Seção",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "duplicated section ids",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": []
+          },
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "section title empty",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "section title blank",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "   ",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "section title of 41 characters",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "ttttttttttttttttttttttttttttttttttttttttt",
+            "widgets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "widget id with spaces",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w 1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "duplicated widget ids in one section",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              },
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 2,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "duplicated widget ids across sections",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "s2",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "title empty",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "title blank",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "   ",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "title of 61 characters",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "title not a string",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": 5,
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown chart",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "pie",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "no series",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "seven series",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "label blank",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": " ",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "label of 41 characters",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "lllllllllllllllllllllllllllllllllllllllll",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown palette color",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "purple"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "short hex color",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "#abc"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "css injection in color",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "red;background:url(x)"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "css variable as color",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "var(--viz-blue)"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "invalid background",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                },
+                "background": "#12345g"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown mark",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue",
+                    "mark": "pie"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown variable",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.deleted"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown divisor",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed",
+                      "divideBy": "tasks.deleted"
+                    },
+                    "label": "Taxa",
+                    "color": "aqua"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ratio of a rate",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate",
+                      "divideBy": "habits.scheduled"
+                    },
+                    "label": "Taxa",
+                    "color": "aqua"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ratio by a streak",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed",
+                      "divideBy": "habits.currentStreak"
+                    },
+                    "label": "Taxa",
+                    "color": "aqua"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown grouping",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "month",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "last 14 days",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 14
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "next 365 days",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "next",
+                  "days": 365
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown period kind",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "forever",
+                  "days": 7
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "custom period backwards",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "custom",
+                  "from": "2025-03-02",
+                  "to": "2025-03-01"
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "custom period of 367 days",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "custom",
+                  "from": "2024-01-01",
+                  "to": "2025-01-01"
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "custom period with an impossible day",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "custom",
+                  "from": "2025-02-30",
+                  "to": "2025-03-01"
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "custom period without an end",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "custom",
+                  "from": "2025-03-01"
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "habit id zero",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "habit",
+                  "habitId": 0
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "habit id negative",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "habit",
+                  "habitId": -3
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown habit filter",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "some"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "habit grouping with a task variable",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "habit",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "habit grouping with a task divisor",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed",
+                      "divideBy": "tasks.completed"
+                    },
+                    "label": "Taxa",
+                    "color": "aqua"
+                  }
+                ],
+                "grouping": "habit",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "streak by day",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.currentStreak"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "number with two series",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "number",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.created"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "none",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "number grouped",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "number",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "heatmap by week",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "heatmap",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "week",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "heatmap with two series",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "heatmap",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "tasks.created"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "donut with one total",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "donut",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "none",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "donut by day",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "donut",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "donut of rates",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "donut",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "habit",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "bar with mixed units",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completed"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  },
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "stacked rates",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "area",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "habits.completionRate"
+                    },
+                    "label": "Série",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                },
+                "stacked": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "x past the grid",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 4,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "negative x",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": -1,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "zero width",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 0,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "width 5",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 5,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "overflowing the columns",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 2,
+                  "y": 0,
+                  "w": 3,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "row past 50",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 51,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "negative row",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": -1,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "height 5",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 1,
+                  "h": 5
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "zero height",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 1,
+                  "h": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fractional x",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 1.5,
+                  "y": 0,
+                  "w": 1,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing layout",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "overlapping widgets",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 2
+                }
+              },
+              {
+                "id": "w2",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 1,
+                  "y": 1,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "control character in a title",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Grá\u0000fico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "control character in a label",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Con\tcluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "control character in a section title",
+      "valid": false,
+      "config": {
+        "version": 1,
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Seção",
+            "widgets": [
+              {
+                "id": "w1",
+                "title": "Gráfico",
+                "chart": "bar",
+                "series": [
+                  {
+                    "metric": {
+                      "variable": "tasks.completed"
+                    },
+                    "label": "Concluídas",
+                    "color": "blue"
+                  }
+                ],
+                "grouping": "day",
+                "period": {
+                  "kind": "last",
+                  "days": 30
+                },
+                "habitFilter": {
+                  "kind": "all"
+                },
+                "layout": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 2,
+                  "h": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
